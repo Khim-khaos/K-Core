@@ -1,0 +1,53 @@
+<link rel="stylesheet" href="/pages/welcome.css" />
+
+<div class="welcome-page animate-fade-in">
+    <div class="welcome-aurora" aria-hidden="true">
+        <span class="orb orb-1"></span>
+        <span class="orb orb-2"></span>
+        <span class="orb orb-3"></span>
+    </div>
+
+    <div class="welcome-grid" aria-hidden="true"></div>
+
+    <div class="welcome-content">
+        <div class="welcome-hero">
+            <div class="welcome-logo animate-float">
+                <img src="/assets/kubek_icon.png" alt="Kubek"/>
+                <div class="welcome-logo-glow"></div>
+            </div>
+            <h1 class="welcome-title text-gradient">{{welcome.title}}</h1>
+            <p class="welcome-subtitle">{{welcome.pressNewServer}}</p>
+        </div>
+
+        <div class="welcome-cta">
+            <button class="primary-btn welcome-create-btn" onclick="window.location='/?act=newServer'">
+                <span class="material-symbols-rounded">add_circle</span>
+                <span>{{commons.create}} {{commons.server.lowerCase}}</span>
+                <span class="material-symbols-rounded arrow">arrow_forward</span>
+            </button>
+        </div>
+
+        <div class="welcome-features">
+            <div class="welcome-feature stagger-item">
+                <span class="welcome-feature-icon material-symbols-rounded">bolt</span>
+                <h3>Quick Setup</h3>
+                <p>Создайте сервер в несколько кликов с автоматической установкой ядра</p>
+            </div>
+            <div class="welcome-feature stagger-item">
+                <span class="welcome-feature-icon material-symbols-rounded">monitoring</span>
+                <h3>Live Monitoring</h3>
+                <p>Отслеживайте CPU, RAM, TPS и игроков в реальном времени</p>
+            </div>
+            <div class="welcome-feature stagger-item">
+                <span class="welcome-feature-icon material-symbols-rounded">extension</span>
+                <h3>Plugins &amp; Mods</h3>
+                <p>Управляйте плагинами и модами через удобный интерфейс</p>
+            </div>
+            <div class="welcome-feature stagger-item">
+                <span class="welcome-feature-icon material-symbols-rounded">lan</span>
+                <h3>Built-in FTP</h3>
+                <p>Встроенный FTP-сервер для удобной работы с файлами</p>
+            </div>
+        </div>
+    </div>
+</div>

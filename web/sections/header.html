@@ -1,0 +1,244 @@
+<div class="header" id="main-header">
+    <div class="header-left">
+        <button class="dark-btn icon-only menu-btn" onclick="KubekUI.toggleSidebar()" aria-label="Menu">
+            <span class="material-symbols-rounded">menu</span>
+        </button>
+        <div class="logo" onclick="window.location='/'">
+            <img src="/assets/kubek_icon.png" alt="Kubek"/>
+            <img src="/assets/kubek_logo_text.svg" alt="Kubek" class="logo-text"/>
+        </div>
+    </div>
+
+    <div class="header-center">
+        <span class="header-title">Kubek</span>
+        <span class="header-version" id="header-version"></span>
+    </div>
+
+    <div class="header-right">
+        <button class="dark-btn icon-only header-icon-btn" id="header-refresh-btn" title="Refresh" aria-label="Refresh">
+            <span class="material-symbols-rounded">refresh</span>
+        </button>
+        <div class="account" id="account-btn">
+            <div class="bg-circle">
+                <span class="material-symbols-rounded">person</span>
+            </div>
+            <span class="login"></span>
+            <span class="material-symbols-rounded account-chevron">expand_more</span>
+        </div>
+    </div>
+</div>
+
+<script defer>
+    $(function () {
+        KubekRequests.get("/kubek/version", (ver) => {
+            if (ver) {
+                document.getElementById("header-version").textContent = "v" + (typeof ver === "string" ? ver : ver.version || "");
+            }
+        });
+
+        KubekRequests.get("/auth/isEnabled", (isAuth) => {
+            if (isAuth === false) {
+                $(".header .account").hide();
+            } else {
+                KubekRequests.get("/auth/login", (login) => {
+                    $(".header .account .login").text(login);
+                });
+            }
+        });
+
+        $("#account-btn").on("click", (e) => {
+            const items = [{
+                icon: "logout",
+                text: "{{commons.logout}}",
+                data: "logout"
+            }];
+            KubekDropdowns.addDropdown(items, e.clientX, e.clientY, 5, (result) => {
+                if (result === "logout") {
+                    KubekRequests.get("/auth/logout", () => {
+                        window.location = "/login.html";
+                    });
+                }
+            });
+        });
+
+        $("#header-refresh-btn").on("click", function() {
+            const icon = this.querySelector(".material-symbols-rounded");
+            if (icon) {
+                icon.classList.add("animate-spin");
+                setTimeout(() => icon.classList.remove("animate-spin"), 700);
+            }
+            if (typeof KubekRefresher !== "undefined") {
+                KubekRefresher.refreshConsoleLog?.();
+                KubekRefresher.refreshServerHeader?.();
+            }
+        });
+    });
+</script>
+
+<style>
+    #main-header {
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border-bottom: 1px solid var(--glass-border);
+        width: 100%;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .menu-btn {
+        display: none !important;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: transform var(--transition-fast);
+    }
+
+    .logo:hover {
+        transform: scale(1.03);
+    }
+
+    .logo img:first-child {
+        height: 30px;
+        filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.4));
+    }
+
+    .logo .logo-text {
+        height: 18px;
+    }
+
+    .header-center {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-title {
+        font-weight: 800;
+        font-size: 16px;
+        color: var(--text-main);
+        letter-spacing: -0.02em;
+    }
+
+    .header-version {
+        font-size: 11px;
+        color: var(--text-dim);
+        font-weight: 700;
+        padding: 3px 10px;
+        background: var(--bg-dark-accent);
+        border-radius: var(--radius-full);
+        border: 1px solid var(--glass-border);
+        font-family: var(--font-mono);
+        letter-spacing: 0.02em;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-icon-btn {
+        display: none;
+    }
+
+    .account {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px 6px 6px;
+        border-radius: var(--radius-full);
+        cursor: pointer;
+        background: var(--bg-dark-accent);
+        border: 1px solid var(--glass-border);
+        transition: all var(--transition-fast);
+    }
+
+    .account:hover {
+        background: var(--bg-dark-accent-light);
+        border-color: var(--bg-primary-500);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .account .bg-circle {
+        background: linear-gradient(135deg, var(--bg-primary-600), var(--bg-primary-500));
+        border-radius: var(--radius-full);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        flex-shrink: 0;
+    }
+
+    .account .bg-circle * {
+        font-size: 18px;
+        color: white;
+    }
+
+    .account .login {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-main);
+    }
+
+    .account .account-chevron {
+        font-size: 18px;
+        color: var(--text-dim);
+        transition: transform var(--transition-fast);
+    }
+
+    .account:hover .account-chevron {
+        color: var(--text-main);
+    }
+
+    @media screen and (max-width: 1100px) {
+        #main-header {
+            padding: 0 16px;
+        }
+        .menu-btn {
+            display: flex !important;
+        }
+        .header-center {
+            display: none;
+        }
+        .account .bg-circle {
+            width: 36px;
+            height: 36px;
+        }
+        .account .login,
+        .account .account-chevron {
+            display: none;
+        }
+        .header-icon-btn {
+            display: flex;
+        }
+    }
+
+    @media screen and (max-width: 600px) {
+        #main-header {
+            height: 56px;
+        }
+        .logo img:first-child { height: 26px; }
+        .logo .logo-text { display: none; }
+    }
+</style>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="theme-color" content="#020617"/>
+    <meta name="description" content="Kubek — веб-панель управления серверами Minecraft"/>
+    <meta name="color-scheme" content="dark light"/>
+    <title>Kubek</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link rel="preload" href="css/globals.css" as="style"/>
+    <link rel="preload" href="css/theme.css" as="style"/>
+
+    <link rel="stylesheet" href="css/animate.min.css"/>
+    <link rel="stylesheet" href="css/atom-one-dark.css">
+    <link rel="stylesheet" href="css/globals.css"/>
+    <link rel="stylesheet" href="css/theme.css"/>
+    <link rel="stylesheet" href="css/elements/elements.css"/>
+    <link rel="stylesheet" href="css/preloader.css"/>
+    <link rel="stylesheet" href="css/mobile.css"/>
+    <link rel="stylesheet" href="assets/fonts/Gilroy/stylesheet.css"/>
+    <link rel="stylesheet" href="assets/fonts/RobotoMono/stylesheet.css"/>
+    <link rel="stylesheet" href="assets/fonts/MSR/stylesheet.css"/>
+</head>
+<body>
+    <header class="main-header" id="main-header-place"></header>
+
+    <div class="main-layout" id="main-layout">
+        <aside class="sidebar minimized" id="sidebar-place"></aside>
+        <div class="content-header" id="content-header-place"></div>
+        <main class="content" id="content-place" role="main"></main>
+    </div>
+
+    <div class="preloader" id="main-preloader" role="status" aria-label="Loading">
+        <div class="preloader-content">
+            <div class="preloader-logo">
+                <img src="/assets/kubek_icon.png" alt="Kubek"/>
+            </div>
+            <div class="preloader-text">KUBEK</div>
+            <div class="preloader-subtitle">Loading…</div>
+            <div class="preloader-progress"></div>
+        </div>
+    </div>
+
+    <div class="blurScreen" style="display: none" aria-hidden="true"></div>
+
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+      <a class="nav-item" data-page="dashboard">
+        <span class="material-symbols-rounded">dashboard</span>
+        <span class="nav-label">{{sections.dashboard}}</span>
+      </a>
+      <a class="nav-item" data-page="console">
+        <span class="material-symbols-rounded">terminal</span>
+        <span class="nav-label">{{sections.console}}</span>
+      </a>
+      <a class="nav-item" data-page="fileManager">
+        <span class="material-symbols-rounded">folder</span>
+        <span class="nav-label">{{sections.fileManager}}</span>
+      </a>
+      <a class="nav-item" data-page="plugins">
+        <span class="material-symbols-rounded">extension</span>
+        <span class="nav-label">{{sections.plugins}}</span>
+      </a>
+      <a class="nav-item" data-page="serverSettings">
+        <span class="material-symbols-rounded">tune</span>
+        <span class="nav-label">{{sections.serverSettings}}</span>
+      </a>
+    </nav>
+
+    <div class="uiPool bottom left" id="alerts-pool" role="status" aria-live="polite"></div>
+    <div class="uiPool bottom right" id="tasks-pool" role="status" aria-live="polite"></div>
+
+    <script src="js/jquery-3.7.0.min.js" defer></script>
+    <script src="js/base64.min.js" defer></script>
+    <script src="js/highlight.min.js" defer></script>
+    <script src="js/mineParse.js" defer></script>
+    <script src="js/ANSIParse.js" defer></script>
+    <script src="js/classes/KubekPredefined.js" defer></script>
+    <script src="js/classes/KubekRequests.js" defer></script>
+    <script src="js/classes/KubekAlerts.js" defer></script>
+    <script src="js/classes/KubekDropdowns.js" defer></script>
+    <script src="js/classes/KubekUtils.js" defer></script>
+    <script src="js/classes/KubekHardware.js" defer></script>
+    <script src="js/classes/KubekCircleProgress.js" defer></script>
+    <script src="js/classes/KubekCoresManager.js" defer></script>
+    <script src="js/classes/KubekJavaManager.js" defer></script>
+    <script src="js/classes/KubekServers.js" defer></script>
+    <script src="js/classes/KubekServerHeaderUI.js" defer></script>
+    <script src="js/classes/KubekFileManager.js" defer></script>
+    <script src="js/classes/KubekPlugins.js" defer></script>
+    <script src="js/classes/KubekTasksUI.js" defer></script>
+    <script src="js/classes/KubekNotifyModal.js" defer></script>
+    <script src="js/classes/KubekInstallerConsole.js" defer></script>
+    <script src="js/classes/KubekRefresher.js" defer></script>
+    <script src="js/classes/KubekUI.js" defer></script>
+    <script src="js/classes/KubekPageManager.js" defer></script>
+
+    <script>
+        function initMobileNav() {
+            if (typeof KubekPageManager === "undefined") {
+                return setTimeout(initMobileNav, 10);
+            }
+
+            function updateMobileNav(page) {
+                document.querySelectorAll("#mobile-bottom-nav .nav-item").forEach(el => {
+                    el.classList.toggle("active", el.dataset.page === page);
+                });
+            }
+
+            const origGotoPage = KubekPageManager.gotoPage;
+            KubekPageManager.gotoPage = function(page) {
+                updateMobileNav(page);
+                origGotoPage.call(this, page);
+            };
+
+            document.querySelectorAll("#mobile-bottom-nav .nav-item").forEach(el => {
+                el.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    KubekPageManager.gotoPage(el.dataset.page);
+                });
+            });
+        }
+
+        // Auto-init ripples/tooltips for dynamically inserted content
+        if (typeof KubekUtils !== "undefined" && typeof MutationObserver !== "undefined") {
+            const debouncedInit = KubekUtils.debounce(() => {
+                document.querySelectorAll("#main-header-place, #content-place, #sidebar-place, #content-header-place")
+                    .forEach((el) => KubekUtils.initAll(el));
+            }, 100);
+            const obs = new MutationObserver(debouncedInit);
+            obs.observe(document.body, { childList: true, subtree: true });
+        }
+
+        initMobileNav();
+
+        console.log("[UI] Starting Kubek UI...");
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        let act = urlParams.get("act");
+        let selectedServer = localStorage.getItem("selectedServer") || "";
+        let consoleRamUsageBar, consoleCpuUsageBar;
+
+        document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "dark");
+
+        document.addEventListener("DOMContentLoaded", () => {
+            KubekRequests.get("/api/kubek/settings", (settings) => {
+                if (settings?.eulaAccepted === false) {
+                    KubekUI.loadSection("eula", "#main-layout", () => {
+                        document.querySelector(".eulaModal")?.style.setProperty("display", "block");
+                        document.querySelector(".blurScreen")?.style.setProperty("display", "block");
+                    });
+                }
+            });
+
+            KubekRequests.get("/api/updates", (update) => {
+                if (update?.hasUpdate === true) {
+                    KubekAlerts.addAlert("{{commons.updateAvailable}}", "update", update.version.new, 6000, "colored", () => {
+                        KubekNotifyModal.create(
+                            `<h2>{{commons.updateAvailable}}</h2>
+                             <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+                               <span style="font-size:1.2rem;font-weight:600">${update.version.current}</span>
+                               <span class="material-symbols-rounded" style="font-size:24pt;color:var(--bg-primary-400)">navigate_next</span>
+                               <span style="font-size:1.2rem;font-weight:600">${update.version.new}</span>
+                             </div>`,
+                            update.body.replaceAll("\n", "<br>"),
+                            "{{commons.goto}}", "update",
+                            () => window.open(update.url, "_blank"),
+                            KubekPredefined.MODAL_CANCEL_BTN
+                        );
+                    });
+                }
+            });
+
+            KubekUI.loadSection("header", "#main-header-place", () => {
+                KubekUI.loadSection("content-header", "#content-header-place", () => {
+                    KubekUI.loadSelectedServer();
+                    KubekUI.loadSection("sidebar", "#sidebar-place", () => {
+                        KubekUI.loadServersList();
+
+                        KubekServers.getServersList((servers) => {
+                            if (servers.length === 0) {
+                                KubekPageManager.gotoPage(act === "newServer" ? "newServer" : "welcome");
+                                document.querySelector("#sidebar-place .sidebar-box#servers-list-sidebar + .sidebar-box")?.style.setProperty("display", "none");
+                                document.querySelector(".content-header")?.style.setProperty("display", "none");
+                                document.querySelectorAll("#sidebar-place .server-item").forEach(el => {
+                                    el.classList.add("animate__animated", "animate__headShake");
+                                    el.style.setProperty("animation-iteration-count", "infinite");
+                                });
+                            } else {
+                                KubekServers.getServersList((serversList) => {
+                                    if (!serversList.includes(selectedServer)) {
+                                        localStorage.setItem("selectedServer", serversList[0]);
+                                        selectedServer = serversList[0];
+                                        window.location.reload();
+                                    }
+                                });
+                                KubekPageManager.gotoPage(act || "dashboard");
+                            }
+                        });
+
+                        KubekUI.hidePreloader();
+                        KubekRefresher.refreshConsoleLog();
+                        KubekRefresher.addRefreshServerLogInterval();
+                        KubekRefresher.addRefreshServerHeaderInterval();
+                        KubekRefresher.addRefreshUsageInterval();
+                        KubekRefresher.addRefreshTasksInterval();
+                        KubekRefresher.addHealthCheckInterval();
+                    });
+                });
+            });
+        });
+    </script>
+
+    <style>
+        body, html {
+            padding: 0; margin: 0; overflow: hidden;
+            background: var(--bg-dark);
+        }
+        #main-layout {
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr minmax(280px, 320px) 40px minmax(auto, 1200px) 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 0;
+            grid-template-areas:
+                ". sidebar . content-header ."
+                ". sidebar . content .";
+            padding-bottom: 60px;
+        }
+        #main-layout .sidebar { grid-area: sidebar; padding-top: 32px; }
+        #main-layout #content-header-place { grid-area: content-header; padding-top: 32px; }
+        #main-layout .content {
+            grid-area: content; padding-top: 20px;
+            min-height: 0; width: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        @media screen and (max-width: 1400px) {
+            #main-layout { grid-template-columns: 24px 280px 24px 1fr 24px; }
+        }
+
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-top: 1px solid var(--glass-border);
+            padding: 4px 0;
+            padding-bottom: max(4px, env(safe-area-inset-bottom, 4px));
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
+        }
+
+        .mobile-bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            padding: 4px 8px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            text-decoration: none;
+            min-width: 50px;
+        }
+
+        .mobile-bottom-nav .nav-item span {
+            color: var(--text-dim);
+            transition: color 0.2s ease;
+        }
+
+        .mobile-bottom-nav .nav-item .material-symbols-rounded {
+            font-size: 22px;
+        }
+
+        .mobile-bottom-nav .nav-item .nav-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .mobile-bottom-nav .nav-item.active .material-symbols-rounded {
+            color: var(--bg-primary-400);
+        }
+
+        .mobile-bottom-nav .nav-item.active .nav-label {
+            color: var(--bg-primary-400);
+        }
+
+        .mobile-bottom-nav .nav-item:active {
+            transform: scale(0.92);
+        }
+
+        @media screen and (max-width: 1100px) {
+            #main-layout {
+                display: flex; flex-direction: column; padding: 0 16px;
+                padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+                overflow: hidden;
+            }
+            #main-layout .sidebar {
+                padding: 16px 0 0 0;
+            }
+            #main-layout #content-header-place {
+                padding: 16px 0 0 0;
+            }
+            #main-layout .content {
+                width: 100%; 
+                padding: 16px 0 0 0;
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
+            }
+            .mobile-bottom-nav {
+                display: flex;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            #main-layout {
+                padding: 0 12px;
+                padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+    </style>
+</body>
+</html>

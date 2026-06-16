@@ -1,0 +1,229 @@
+<form id="server-icon-form" enctype="multipart/form-data">
+    <input name="server-icon-input" id="server-icon-input" class="superHide" type="file" accept="image/png, image/jpeg"/>
+</form>
+
+<div class="content-header" id="server-content-header">
+    <div class="icon-section" onclick="uploadServerIcon()">
+        <div class="icon-wrapper">
+            <img src="" alt="Server icon"/>
+            <div class="icon-overlay">
+                <span class="material-symbols-rounded">upload</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="server-name"></div>
+        <div class="server-meta">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span class="status-text">{{serverStatus.stopped}}</span>
+            </div>
+            <div class="server-detail" id="server-core-detail"></div>
+        </div>
+    </div>
+
+    <div class="actions-section">
+        <button class="dark-btn action-btn" id="server-start-btn" onclick="KubekServers.startServer(selectedServer)">
+            <span class="material-symbols-rounded">play_arrow</span>
+            <span>{{commons.start}}</span>
+        </button>
+        <button class="dark-btn action-btn" id="server-stop-btn" onclick="KubekServers.stopServer(selectedServer)">
+            <span class="material-symbols-rounded">stop</span>
+            <span>{{commons.stop}}</span>
+        </button>
+        <button class="dark-btn icon-only" id="server-restart-btn" onclick="KubekServers.restartServer(selectedServer)">
+            <span class="material-symbols-rounded">restart_alt</span>
+        </button>
+        <button class="dark-btn icon-only" id="server-more-btn" onclick="KubekServerHeaderUI.generateDropdown(this)">
+            <span class="material-symbols-rounded">more_vert</span>
+        </button>
+    </div>
+</div>
+
+<style>
+    .content-header {
+        display: none;
+        align-items: center;
+        gap: 20px;
+        padding: 12px 8px 16px;
+        width: 100%;
+    }
+
+    .icon-section {
+        flex-shrink: 0;
+    }
+
+    .icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--radius-md);
+        background: var(--bg-dark-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid var(--glass-border);
+        transition: all var(--transition-fast);
+    }
+
+    .icon-wrapper:hover {
+        border-color: var(--bg-primary-500);
+    }
+
+    .icon-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .icon-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity var(--transition-fast);
+    }
+
+    .icon-wrapper:hover .icon-overlay {
+        opacity: 1;
+    }
+
+    .icon-overlay span {
+        font-size: 22px;
+        color: white;
+    }
+
+    .info-section {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .info-section .server-name {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-main);
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .server-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 4px;
+    }
+
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        flex-shrink: 0;
+    }
+
+    .status-dot.running {
+        background: #4ade80;
+        box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+    }
+
+    .status-dot.starting {
+        background: var(--warning);
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+        animation: pulse-dot 1s infinite;
+    }
+
+    .status-dot.stopping {
+        background: var(--error);
+        box-shadow: 0 0 8px rgba(244, 63, 94, 0.5);
+    }
+
+    .status-text {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    .server-detail {
+        font-size: 12px;
+        color: var(--text-dim);
+        font-weight: 500;
+    }
+
+    .server-detail::before {
+        content: '·';
+        margin-right: 8px;
+        color: var(--text-dim);
+    }
+
+    .actions-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .actions-section .action-btn {
+        padding: 8px 16px;
+        border-radius: var(--radius-sm);
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 0.4; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    @media (max-width: 768px) {
+        .content-header {
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .icon-wrapper {
+            width: 48px;
+            height: 48px;
+        }
+        .info-section .server-name {
+            font-size: 17px;
+        }
+        .actions-section {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    @media (max-width: 1100px) {
+        .content-header {
+            padding: 12px 0;
+        }
+    }
+</style>
+
+<script defer>
+    function uploadServerIcon() {
+        const input = document.getElementById("server-icon-input");
+        input.click();
+        input.onchange = () => {
+            const formData = new FormData(document.getElementById("server-icon-form"));
+            KubekRequests.post("/servers/" + selectedServer + "/icon", () => {
+                KubekServerHeaderUI.loadServerByName(selectedServer, () => {
+                    KubekUI.loadServersList();
+                });
+            }, formData);
+        };
+    }
+</script>

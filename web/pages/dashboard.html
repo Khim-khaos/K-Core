@@ -1,0 +1,124 @@
+<link rel="stylesheet" href="/pages/dashboard.css"/>
+
+<div class="dashboard-container animate-fade-in">
+    <div class="dashboard-header">
+        <div class="header-left">
+            <div class="page-icon">
+                <span class="material-symbols-rounded">dashboard</span>
+            </div>
+            <div>
+                <h1 class="text-gradient">{{sections.dashboard}}</h1>
+                <p class="header-subtitle">{{commons.server}} Management</p>
+            </div>
+        </div>
+        <div class="system-quick-stats glass-panel">
+            <div class="stat-item">
+                <span class="stat-icon">
+                    <span class="material-symbols-rounded">memory</span>
+                </span>
+                <div class="stat-info">
+                    <span class="label">CPU</span>
+                    <div class="progress-mini"><div id="total-cpu-bar" style="width:0%"></div></div>
+                </div>
+                <span class="value" id="total-cpu-val">0%</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-icon">
+                    <span class="material-symbols-rounded">monitoring</span>
+                </span>
+                <div class="stat-info">
+                    <span class="label">RAM</span>
+                    <div class="progress-mini"><div id="total-ram-bar" style="width:0%"></div></div>
+                </div>
+                <span class="value" id="total-ram-val">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-card stagger-item">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <span class="material-symbols-rounded card-icon">monitoring</span>
+                    <div>
+                        <h3>{{sections.systemMonitor}}</h3>
+                        <span class="card-subtitle">Real-time system metrics</span>
+                    </div>
+                </div>
+                <span class="status-indicator online"></span>
+            </div>
+            <div class="system-stats-grid">
+                <div class="system-stat">
+                    <div class="stat-label">CPU</div>
+                    <div class="stat-progress-container">
+                        <div class="stat-progress-bar" id="sys-cpu-bar" style="width:0%"></div>
+                    </div>
+                    <div class="stat-value" id="sys-cpu-val">0%</div>
+                </div>
+                <div class="system-stat">
+                    <div class="stat-label">RAM</div>
+                    <div class="stat-progress-container">
+                        <div class="stat-progress-bar" id="sys-ram-bar" style="width:0%"></div>
+                    </div>
+                    <div class="stat-value" id="sys-ram-val">0%</div>
+                </div>
+                <div class="system-stat">
+                    <div class="stat-label">{{systemMonitor.kubekUptime}}</div>
+                    <div class="stat-value" id="sys-uptime-val" style="font-size:15px;margin-top:8px">0h 0m</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card stagger-item">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <span class="material-symbols-rounded card-icon">bolt</span>
+                    <div>
+                        <h3>{{commons.actions}}</h3>
+                        <span class="card-subtitle">Quick access</span>
+                    </div>
+                </div>
+            </div>
+            <div class="actions-grid">
+                <button class="action-btn primary" onclick="window.location='/?act=newServer'">
+                    <span class="material-symbols-rounded">add_circle</span>
+                    <span>{{commons.create}}</span>
+                </button>
+                <button class="action-btn" onclick="KubekPageManager.gotoPage('kubekSettings')">
+                    <span class="material-symbols-rounded">settings</span>
+                    <span>{{sections.kubekSettings}}</span>
+                </button>
+                <button class="action-btn" onclick="KubekPageManager.gotoPage('systemMonitor')">
+                    <span class="material-symbols-rounded">area_chart</span>
+                    <span>{{sections.systemMonitor}}</span>
+                </button>
+                <button class="action-btn" onclick="KubekPageManager.gotoPage('fileManager')">
+                    <span class="material-symbols-rounded">folder</span>
+                    <span>{{sections.fileManager}}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="servers-section">
+        <div class="servers-section-header">
+            <div class="header-left">
+                <h2>{{commons.servers}}</h2>
+                <span class="server-count" id="total-servers-count">0</span>
+            </div>
+            <div class="header-right">
+                <span class="status-badge running-badge">
+                    <span class="dot"></span>
+                    <span id="running-servers-count">0</span> {{serverStatus.running}}
+                </span>
+                <span class="status-badge stopped-badge">
+                    <span class="dot"></span>
+                    <span id="stopped-servers-count">0</span> {{serverStatus.stopped}}
+                </span>
+            </div>
+        </div>
+
+        <div class="servers-grid" id="dashboard-servers-grid"></div>
+    </div>
+</div>

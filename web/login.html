@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="theme-color" content="#020617"/>
+    <title>Kubek | {{commons.auth}}</title>
+    <meta name="description" content="Kubek — веб-панель управления серверами Minecraft"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link rel="preload" href="css/globals.css" as="style"/>
+    <link rel="preload" href="css/theme.css" as="style"/>
+
+    <link rel="stylesheet" href="css/animate.min.css"/>
+    <link rel="stylesheet" href="css/globals.css"/>
+    <link rel="stylesheet" href="css/theme.css"/>
+    <link rel="stylesheet" href="css/preloader.css"/>
+    <link rel="stylesheet" href="css/mobile.css"/>
+    <link rel="stylesheet" href="assets/fonts/Gilroy/stylesheet.css"/>
+    <link rel="stylesheet" href="css/elements/elements.css"/>
+</head>
+<body>
+    <div class="preloader" id="main-preloader" role="status" aria-label="Loading">
+        <div class="preloader-content">
+            <div class="preloader-logo">
+                <img src="/assets/kubek_icon.png" alt="Kubek"/>
+            </div>
+            <div class="preloader-text">KUBEK</div>
+            <div class="preloader-subtitle">Loading…</div>
+            <div class="preloader-progress"></div>
+        </div>
+    </div>
+
+    <div class="login-page">
+        <div class="login-aurora" aria-hidden="true">
+            <span class="orb orb-1"></span>
+            <span class="orb orb-2"></span>
+            <span class="orb orb-3"></span>
+        </div>
+
+        <div class="login-modal animate-fade-in-scale">
+            <button class="login-theme-toggle" id="login-theme-toggle" type="button" aria-label="Toggle theme">
+                <span class="material-symbols-rounded" id="login-theme-icon">light_mode</span>
+            </button>
+
+            <div class="login-left">
+                <div class="login-brand animate-fade-in">
+                    <div class="brand-logo">
+                        <img src="/assets/kubek_icon.png" alt="Kubek"/>
+                    </div>
+                    <div>
+                        <h1 class="brand-title text-gradient">Kubek</h1>
+                        <p class="brand-desc">{{commons.auth}}</p>
+                    </div>
+                </div>
+
+                <form class="login-form" id="login-form" onsubmit="login();return false">
+                    <div class="form-group animate-fade-in-up" style="animation-delay: 80ms">
+                        <label for="login-input">
+                            <span class="material-symbols-rounded">person</span>
+                            {{commons.login}}
+                        </label>
+                        <div class="input-wrap">
+                            <input type="text" id="login-input" placeholder="{{commons.login}}" autocomplete="username" autofocus/>
+                            <span class="input-icon material-symbols-rounded">alternate_email</span>
+                        </div>
+                    </div>
+                    <div class="form-group animate-fade-in-up" style="animation-delay: 160ms">
+                        <label for="password-input">
+                            <span class="material-symbols-rounded">lock</span>
+                            {{commons.password}}
+                        </label>
+                        <div class="input-wrap">
+                            <input type="password" id="password-input" placeholder="{{commons.password}}" autocomplete="current-password"/>
+                            <button type="button" class="input-icon input-toggle-pw material-symbols-rounded" id="login-pw-toggle" aria-label="Show password">visibility</button>
+                        </div>
+                    </div>
+
+                    <button class="primary-btn login-submit" id="login-btn" type="submit">
+                        <span class="btn-text">{{commons.goto}}</span>
+                        <span class="material-symbols-rounded btn-icon">arrow_forward</span>
+                        <span class="loader" style="display:none"></span>
+                    </button>
+                </form>
+
+                <div class="login-foot animate-fade-in" style="animation-delay: 320ms">
+                    <span class="login-version" id="login-version"></span>
+                </div>
+            </div>
+
+            <div class="login-right">
+                <div class="login-grid-bg" aria-hidden="true"></div>
+                <div class="login-right-content">
+                    <div class="login-big-text">KUBEK</div>
+                    <p class="login-tagline text-gradient">Minecraft Server Control Panel</p>
+                    <div class="login-features">
+                        <div class="feature animate-fade-in" style="animation-delay: 220ms">
+                            <span class="feature-icon material-symbols-rounded">dashboard</span>
+                            <div class="feature-text">
+                                <strong>{{sections.dashboard}}</strong>
+                                <span>Real-time monitoring</span>
+                            </div>
+                        </div>
+                        <div class="feature animate-fade-in" style="animation-delay: 280ms">
+                            <span class="feature-icon material-symbols-rounded">terminal</span>
+                            <div class="feature-text">
+                                <strong>{{sections.console}}</strong>
+                                <span>Live command execution</span>
+                            </div>
+                        </div>
+                        <div class="feature animate-fade-in" style="animation-delay: 340ms">
+                            <span class="feature-icon material-symbols-rounded">extension</span>
+                            <div class="feature-text">
+                                <strong>{{sections.plugins}}</strong>
+                                <span>Easy install &amp; manage</span>
+                            </div>
+                        </div>
+                        <div class="feature animate-fade-in" style="animation-delay: 400ms">
+                            <span class="feature-icon material-symbols-rounded">lan</span>
+                            <div class="feature-text">
+                                <strong>FTP Server</strong>
+                                <span>Built-in file transfer</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="uiPool bottom left" id="alerts-pool"></div>
+
+    <script src="js/jquery-3.7.0.min.js"></script>
+    <script src="js/classes/KubekPredefined.js"></script>
+    <script src="js/classes/KubekRequests.js"></script>
+    <script src="js/classes/KubekAlerts.js"></script>
+
+    <script defer>
+        document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "dark");
+        const updateLoginThemeIcon = (t) => {
+            const icon = document.getElementById("login-theme-icon");
+            if (icon) icon.textContent = t === "light" ? "dark_mode" : "light_mode";
+        };
+        updateLoginThemeIcon(document.documentElement.getAttribute("data-theme"));
+
+        document.getElementById("login-theme-toggle")?.addEventListener("click", () => {
+            const cur = document.documentElement.getAttribute("data-theme") || "dark";
+            const next = cur === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", next);
+            localStorage.setItem("theme", next);
+            updateLoginThemeIcon(next);
+        });
+
+        document.getElementById("login-pw-toggle")?.addEventListener("click", function() {
+            const pw = document.getElementById("password-input");
+            if (!pw) return;
+            const isPw = pw.type === "password";
+            pw.type = isPw ? "text" : "password";
+            this.textContent = isPw ? "visibility_off" : "visibility";
+        });
+
+        $(function () {
+            $("input").on("input", verifyInputs);
+            $("#login-btn").on("click", login);
+            $("input").on("keypress", function (e) {
+                if (e.key === "Enter") login();
+            });
+        });
+
+        function login() {
+            const login = $("#login-input").val();
+            const password = $("#password-input").val();
+            const btn = $("#login-btn");
+
+            btn.prop("disabled", true);
+            btn.find(".btn-text").hide();
+            btn.find(".btn-icon").hide();
+            btn.find(".loader").show();
+
+            KubekRequests.post("/auth/login", (result) => {
+                if (result?.success === true) {
+                    window.location = "/";
+                } else {
+                    btn.prop("disabled", false);
+                    btn.find(".btn-text").show();
+                    btn.find(".btn-icon").show();
+                    btn.find(".loader").hide();
+                    KubekAlerts.addAlert(result?.error || "{{commons.failedToRequest}}", "warning", "", 6000);
+                }
+            }, { login, password });
+        }
+
+        function verifyInputs() {
+            const login = $("#login-input").val();
+            const password = $("#password-input").val();
+            const btn = $("#login-btn");
+
+            const loginOk = KubekPredefined.LOGIN_REGEX.test(login);
+            const passOk = KubekPredefined.PASSWORD_REGEX.test(password);
+
+            $("#login-input").toggleClass("error", !loginOk && login.length > 0);
+            $("#password-input").toggleClass("error", !passOk && password.length > 0);
+
+            btn.prop("disabled", !(loginOk && passOk));
+        }
+
+        KubekRequests.get("/kubek/version", (ver) => {
+            if (ver) {
+                const v = typeof ver === "string" ? ver : ver.version || "";
+                document.getElementById("login-version").textContent = "v" + v;
+            }
+            const preloader = document.getElementById("main-preloader");
+            if (preloader) preloader.classList.add("fade-out");
+        });
+    </script>
+
+    <style>
+        body, html {
+            padding: 0; margin: 0;
+            background: var(--bg-dark);
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .login-page {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .login-aurora {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .login-aurora .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: orb-float 18s ease-in-out infinite;
+        }
+
+        .login-aurora .orb-1 {
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, var(--bg-primary-500), transparent 70%);
+            top: -120px; left: -120px;
+        }
+        .login-aurora .orb-2 {
+            width: 540px; height: 540px;
+            background: radial-gradient(circle, #c084fc, transparent 70%);
+            bottom: -160px; right: -120px;
+            animation-delay: -6s;
+        }
+        .login-aurora .orb-3 {
+            width: 380px; height: 380px;
+            background: radial-gradient(circle, #0ea5e9, transparent 70%);
+            top: 40%; right: 20%;
+            animation-delay: -12s;
+            opacity: 0.3;
+        }
+
+        @keyframes orb-float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -40px) scale(1.05); }
+            66% { transform: translate(-30px, 30px) scale(0.95); }
+        }
+
+        .login-modal {
+            position: relative;
+            width: 100%;
+            max-width: 920px;
+            min-height: 560px;
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--glass-blur-strong);
+            -webkit-backdrop-filter: var(--glass-blur-strong);
+            border-radius: var(--radius-2xl);
+            display: flex;
+            overflow: hidden;
+            box-shadow: var(--shadow-2xl);
+            border: 1px solid var(--glass-border-strong);
+        }
+
+        .login-theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 5;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: var(--bg-dark-accent);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .login-theme-toggle:hover {
+            background: var(--bg-dark-accent-light);
+            color: var(--bg-primary-400);
+            transform: rotate(15deg);
+            border-color: var(--bg-primary-500);
+        }
+        .login-theme-toggle .material-symbols-rounded {
+            font-size: 20px;
+        }
+
+        .login-left {
+            width: 48%;
+            padding: 56px 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--bg-primary-600), var(--bg-primary-500));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 32px rgba(79, 70, 229, 0.4);
+            position: relative;
+        }
+        .brand-logo::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--bg-primary-400), transparent);
+            z-index: -1;
+            filter: blur(12px);
+            opacity: 0.5;
+        }
+        .brand-logo img {
+            height: 32px;
+        }
+
+        .brand-title {
+            font-size: 30px;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .brand-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 4px 0 0;
+            font-weight: 500;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .form-group label .material-symbols-rounded {
+            font-size: 16px;
+            color: var(--bg-primary-400);
+        }
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 14px 48px 14px 18px;
+            background: var(--bg-dark);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 15px;
+            font-weight: 500;
+            transition: all var(--transition-base);
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--bg-primary-500);
+            background: var(--bg-dark-accent);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .input-wrap input.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.15);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 14px;
+            color: var(--text-dim);
+            font-size: 20px;
+            pointer-events: none;
+            transition: color var(--transition-fast);
+        }
+
+        .input-wrap input:focus ~ .input-icon { color: var(--bg-primary-400); }
+
+        .input-toggle-pw {
+            background: transparent;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .input-toggle-pw:hover { color: var(--text-main); }
+
+        .login-submit {
+            height: 52px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 12px;
+            width: 100%;
+            border-radius: var(--radius-md);
+            letter-spacing: 0.02em;
+        }
+
+        .login-submit .btn-icon {
+            font-size: 20px;
+            transition: transform var(--transition-base);
+        }
+
+        .login-submit:hover:not(:disabled) .btn-icon {
+            transform: translateX(4px);
+        }
+
+        .login-submit .loader {
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .login-foot {
+            margin-top: auto;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .login-version {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            padding: 4px 10px;
+            background: var(--bg-dark-accent);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--glass-border);
+        }
+
+        .login-right {
+            width: 52%;
+            background: linear-gradient(135deg, var(--bg-primary-700) 0%, var(--bg-primary-900) 60%, #1e1b4b 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .login-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+        }
+
+        .login-right::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("/assets/sprinkle_bg.svg");
+            background-size: cover;
+            background-position: center;
+            opacity: 0.18;
+            mix-blend-mode: overlay;
+        }
+
+        .login-right::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 70%);
+            top: 20%;
+            right: 20%;
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .login-right-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding: 56px 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-big-text {
+            font-size: 80px;
+            font-weight: 950;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.04) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.18em;
+            line-height: 1;
+            user-select: none;
+            margin: 0;
+        }
+
+        .login-tagline {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin: 0 0 12px;
+        }
+
+        .login-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 380px;
+            margin-top: 16px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(8px);
+            transition: all var(--transition-base);
+            text-align: left;
+        }
+        .feature:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .feature-icon {
+            font-size: 22px !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feature-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .feature-text strong {
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+        }
+        .feature-text span {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.55);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+        }
+
+        @media screen and (max-width: 880px) {
+            .login-modal {
+                flex-direction: column;
+                max-width: 460px;
+                min-height: auto;
+            }
+            .login-left, .login-right {
+                width: 100%;
+            }
+            .login-right {
+                display: none;
+            }
+            .login-left {
+                gap: 28px;
+                padding: 48px 36px;
+            }
+            .login-features {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .login-page { padding: 0; }
+            .login-modal { border-radius: 0; border: none; min-height: 100vh; }
+            .login-left { padding: 40px 24px 32px; gap: 24px; }
+            .brand-title { font-size: 26px; }
+            .login-theme-toggle { top: 12px; right: 12px; }
+        }
+    </style>
+</body>
+</html>

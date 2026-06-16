@@ -1,0 +1,492 @@
+/* ============================================
+   Mobile / Responsive Styles
+   ============================================ */
+
+/* ───── ≤1360px: Sidebar overlay ───── */
+@media (max-width: 1360px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: var(--bg-dark);
+        padding: 20px;
+        overflow-y: auto;
+        animation: sidebarSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar.minimized {
+        display: none;
+    }
+
+    @keyframes sidebarSlideIn {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .sidebar .close-btn {
+        display: flex !important;
+    }
+
+    .sidebar .sidebar-box {
+        max-width: 400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .sidebar .sidebar-box .sidebar-item {
+        padding: 14px 16px;
+        min-height: 48px;
+    }
+
+    .sidebar .sidebar-box .sidebar-item span:not(.material-symbols-rounded) {
+        font-size: 16px;
+    }
+
+    #main-layout {
+        display: flex;
+        flex-direction: column;
+        padding: 0 16px;
+        gap: 0;
+    }
+
+    #main-layout .sidebar,
+    #main-layout .content,
+    #main-layout .content-header {
+        width: 100%;
+        padding: 16px 0;
+    }
+
+    #main-layout .content {
+        padding-bottom: 32px;
+    }
+
+    .main-header .menu-btn {
+        display: flex !important;
+    }
+
+    .ksettings-container table { width: 100% !important; }
+
+    .console-layout {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        gap: 12px;
+    }
+    .console-main {
+        max-height: 55vh;
+    }
+    .console-body {
+        max-height: 55vh;
+    }
+    .console-sidebar {
+        flex-direction: row;
+        justify-content: stretch;
+        gap: 8px;
+    }
+    .console-sidebar .usage-card {
+        flex: 1;
+        padding: 12px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+    .console-sidebar .usage-card .usage-header {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    .console-sidebar .circle-progress {
+        width: 64px !important;
+        height: 64px !important;
+        flex-shrink: 0;
+    }
+    .console-sidebar .circle-progress .text {
+        font-size: 14px !important;
+    }
+}
+
+/* ───── ≤1100px: Планшеты ───── */
+@media (max-width: 1100px) {
+    #main-layout {
+        padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .content-header {
+        padding: 12px 0 !important;
+    }
+
+    .server-item .quick-actions {
+        display: flex !important;
+        gap: 8px !important;
+    }
+
+    .server-item .quick-actions span {
+        font-size: 18px !important;
+        padding: 6px !important;
+        background: var(--bg-dark-accent-light) !important;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .actions-group {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .actions-group .search-box {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .dashboard-container { padding: 16px; }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .dashboard-header { flex-direction: column; align-items: stretch; }
+    .system-quick-stats { justify-content: center; flex-wrap: wrap; }
+    .stat-divider { display: none; }
+    .servers-section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .system-stats-grid { grid-template-columns: 1fr 1fr; }
+    .system-stat:last-child { grid-column: 1 / -1; }
+
+    .console-layout {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        gap: 12px;
+    }
+    .console-main {
+        min-height: 30vh;
+        max-height: 50vh;
+    }
+    .console-body {
+        max-height: 50vh;
+    }
+    .console-sidebar {
+        flex-direction: row;
+        justify-content: stretch;
+        gap: 8px;
+    }
+    .console-sidebar .usage-card {
+        flex: 1;
+        padding: 12px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+    .console-sidebar .usage-card .usage-header {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    .console-sidebar .usage-card .usage-header h4 {
+        font-size: 11px;
+    }
+    .console-sidebar .usage-card .usage-header span {
+        font-size: 18px;
+    }
+    .console-sidebar .circle-progress {
+        width: 56px !important;
+        height: 56px !important;
+        flex-shrink: 0;
+    }
+    .console-sidebar .circle-progress .text {
+        font-size: 13px !important;
+    }
+    .console-sidebar .usage-content .lds-spinner {
+        display: none;
+    }
+
+    .fm-container { grid-template-columns: 1fr; height: auto; min-height: 60vh; }
+    .fm-container .title { display: none; }
+    .fm-container .actions { flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
+    .fm-container .actions button { flex: 0 0 auto; margin: 0 !important; }
+    .fm-container .fileEditor { width: 95vw !important; height: 85vh !important; max-width: 100vw; border-radius: var(--radius-lg); }
+    .table-container { width: 100% !important; overflow-x: auto; }
+    #fm-table tr td:nth-child(3),
+    #fm-table tr td:nth-child(4) { display: none; }
+
+    .plugins-container { flex-direction: column !important; overflow-y: auto; width: 100%; }
+    .plugins-container .panel { height: auto; min-height: 40vh; width: 100%; margin: 8px 0 !important; }
+    .plugins-container .panel .header { flex-wrap: wrap; gap: 8px; }
+    .plugins-container .panel .header .search-box { flex: 1; min-width: 120px; }
+
+    .new-server-container .stage > div[style*="display: flex"] { flex-direction: column !important; }
+    .new-server-container .stage > div[style*="display: flex"] > div { margin: 8px 0 !important; width: 100% !important; }
+    .new-server-container .stage > div[style*="display: flex"] input { width: 100% !important; }
+    .new-server-container #core-selectors-container { gap: 12px; }
+
+    .tableWrapper { width: 100% !important; overflow-x: auto !important; }
+    table th, table td { padding: 12px 14px !important; white-space: nowrap; }
+
+    .content-header .icon-section { display: none !important; }
+    .content-header .actions-section button span:last-child { display: none; }
+
+    .sysmon-container, .sysmon-container table { width: 100%; }
+    .sysmon-container { height: auto; min-height: 60vh; }
+    .usage-summary { flex-wrap: wrap; }
+    .usage-summary .usage-card { flex: 1; min-width: 120px; }
+
+    .ksettings-container .tablesWrapper { height: auto; min-height: 50vh; }
+    .ksettings-container table textarea { min-width: 100%; max-width: 100%; }
+    .userEditModal { width: 90vw !important; max-height: 90vh; }
+
+    .speditor-container { height: auto; min-height: 50vh; }
+    .speditor-container .tableWrapper { height: auto; min-height: 40vh; }
+
+    .ssettings-container { height: auto; min-height: 50vh; }
+
+    .welcome-container img { height: 96px; }
+    .welcome-container * { margin: 16px 0; }
+}
+
+/* ───── ≤768px: телефоны ───── */
+@media (max-width: 768px) {
+    button, .sidebar-item, .account, .dropdown-item,
+    .searchable-dropdown .dropdown-trigger,
+    .searchable-dropdown .dropdown-options > div {
+        min-height: 44px;
+    }
+
+    button { font-size: 14px; padding: 10px 20px; }
+    button.icon-only { width: 44px; height: 44px; }
+
+    input[type="text"], input[type="email"], input[type="number"],
+    input[type="password"], textarea, select {
+        font-size: 16px;
+        padding: 12px 14px;
+    }
+
+    #main-layout {
+        padding: 0 12px;
+        padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .content-header { grid-template-columns: 1fr !important; text-align: center; }
+    .content-header .actions-section button { flex: 1 1 calc(50% - 8px); max-width: none; }
+
+    .server-item .quick-actions { display: flex !important; gap: 12px !important; }
+    .server-item .quick-actions span { font-size: 22px !important; padding: 8px !important; background: var(--bg-dark-accent-light) !important; }
+
+    .search-box input:focus { width: 160px; }
+
+    .alert { max-width: 95vw; width: 95vw; }
+
+    .dashboard-container { padding: 12px; }
+    .dashboard-header h1 { font-size: 22px; }
+    .servers-grid { grid-template-columns: 1fr; gap: 16px; }
+    .actions-grid { grid-template-columns: 1fr; }
+
+    .console-container {
+        padding: 0;
+    }
+    .console-layout {
+        min-height: auto;
+        gap: 8px;
+    }
+    .console-main {
+        min-height: 45vh;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+    .console-body {
+        font-size: 12px;
+        padding: 10px 8px;
+        min-height: 120px;
+    }
+    .console-sidebar {
+        gap: 6px;
+    }
+    .console-sidebar .usage-card {
+        padding: 8px 12px;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+    }
+    .console-sidebar .usage-card .usage-header {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    .console-sidebar .usage-card .usage-header h4 {
+        font-size: 11px;
+    }
+    .console-sidebar .usage-card .usage-header span {
+        font-size: 18px;
+    }
+    .console-sidebar .usage-card .usage-content {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+    .console-sidebar .circle-progress {
+        width: 48px !important;
+        height: 48px !important;
+        flex-shrink: 0;
+    }
+    .console-sidebar .circle-progress .text {
+        font-size: 11px !important;
+    }
+    .console-sidebar .usage-content .lds-spinner {
+        display: none;
+    }
+    .console-sidebar .usage-stats {
+        margin-top: 0;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .console-input-group {
+        flex-direction: column;
+        padding: 8px;
+        gap: 6px;
+        border-radius: 0;
+    }
+    #cmd-send-btn {
+        width: 100%;
+    }
+    .page-header {
+        margin-bottom: 12px;
+    }
+    .page-header .actions-group {
+        gap: 8px;
+    }
+    .page-header .search-box {
+        min-width: 0;
+        width: 100%;
+    }
+    .page-header .search-box input {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .fm-container { padding: 0; gap: 8px; }
+    .fm-container .actions { gap: 6px; }
+    .fm-container .actions button { flex: 1 1 calc(50% - 6px); min-width: 60px; justify-content: center; height: 42px; }
+    .fm-container .actions button span:last-child { display: none; }
+    #fm-table tr td:nth-child(2) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #fm-table td, #fm-table th { padding: 10px 8px !important; font-size: 13px; }
+    #fm-table .icon-bg { width: 32px; height: 32px; }
+    #fm-table .icon-bg * { font-size: 20px; }
+    .fileEditor { width: 100vw !important; height: 100vh !important; max-width: 100vw; border-radius: 0 !important; left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important; }
+    .fileEditor .header input { font-size: 16px; padding: 8px 12px; }
+    .fileEditor pre * { font-size: 11pt !important; }
+    .fileEditor .footer button { margin: 10px 6px; flex: 1; max-width: 150px; }
+
+    .plugins-container .panel .header h2 { font-size: 18px; }
+    .plugins-container .list .item { padding: 14px 12px; }
+    .plugins-container .list .item span.filename { font-size: 14px; }
+
+    .new-server-container { margin-top: 0; }
+    .new-server-container .stage-header .stage-circle { width: 44px; height: 44px; font-size: 18pt; }
+    .new-server-container .stage input { font-size: 16px; height: 48px; }
+    .new-server-container #core-upload { padding: 32px 16px; }
+    .new-server-container .radioButtons .item { font-size: 14px; padding: 10px 12px; }
+    .searchable-dropdown .dropdown-trigger input { font-size: 14px; padding: 12px; }
+
+    .sysmon-container h2 { font-size: 20px; }
+    .usage-summary { gap: 8px; }
+    .usage-summary .usage-card { min-width: 0; padding: 12px; }
+    .sysmon-container table th, .sysmon-container table td { padding: 10px 12px !important; font-size: 13px; white-space: nowrap; }
+
+    .ksettings-container table,
+    .ksettings-container table tbody,
+    .ksettings-container table tr,
+    .ksettings-container table td { display: block; }
+    .ksettings-container table { border: none; }
+    .ksettings-container table tr { margin-bottom: 16px; background: var(--bg-dark-accent); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--glass-border); }
+    .ksettings-container table td { width: 100% !important; padding: 4px 0; }
+    .ksettings-container table td:first-child { font-weight: 600; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; margin-bottom: 8px; }
+    .ksettings-container .iconBg { width: 36px; height: 36px; }
+    .ksettings-container .iconBg * { font-size: 20px; }
+    .ksettings-container h2 { font-size: 20px; }
+    .ksettings-container h4 { font-size: 14px; margin: 16px 0 8px !important; }
+    .ksettings-container .footer { padding: 12px 16px; grid-template-columns: 48px 1fr; }
+    .ksettings-container .footer .icon { height: 40px; }
+    .ksettings-container .footer .title { font-size: 16px; }
+    .ksettings-container .footer .version { font-size: 12px; }
+    .ksettings-container .footer .developer { font-size: 11px; }
+    .ksettings-container .primary-btn { height: 48px; font-size: 16px; }
+    .userEditModal { width: 96vw !important; padding: 12px; border-radius: var(--radius-md); }
+    .userEditModal .header .avatar { width: 48px; height: 48px; }
+    .userEditModal .header .username { font-size: 14pt; }
+    .userEditModal .footer button { flex: 1; margin: 8px 4px; }
+
+    .ssettings-container { padding: 12px !important; }
+    .ssettings-container h2 { font-size: 20px; }
+    .ssettings-container table,
+    .ssettings-container table tbody,
+    .ssettings-container table tr,
+    .ssettings-container table td { display: block; }
+    .ssettings-container table tr { margin-bottom: 16px; background: var(--bg-dark-accent); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--glass-border); }
+    .ssettings-container table td { width: 100% !important; padding: 4px 0; }
+    .ssettings-container table td:first-child { border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; margin-bottom: 8px; }
+    .ssettings-container table input[type="text"],
+    .ssettings-container table input[type="number"] { width: 100% !important; font-size: 16px; }
+    .ssettings-container .primary-btn { height: 48px; font-size: 16px; }
+
+    .speditor-container table,
+    .speditor-container table tbody,
+    .speditor-container table tr,
+    .speditor-container table td { display: block; }
+    .speditor-container table tr { margin-bottom: 12px; background: var(--bg-dark-accent); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--glass-border); }
+    .speditor-container table td { width: 100% !important; padding: 4px 0 !important; }
+    .speditor-container table td:first-child { font-weight: 700; padding-bottom: 8px !important; margin-bottom: 8px; border-bottom: 1px solid var(--glass-border); background: transparent !important; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    #sp-table input { width: 100%; font-size: 16px; padding: 12px; }
+    .speditor-container .primary-btn { height: 48px; font-size: 16px; }
+
+    .server-card { padding: 16px !important; }
+    .server-card .server-icon { width: 48px; height: 48px; }
+
+    .mobile-bottom-nav { padding: 2px 0; padding-bottom: max(2px, env(safe-area-inset-bottom, 2px)); }
+    .mobile-bottom-nav .nav-item { padding: 2px 4px; min-width: 44px; }
+    .mobile-bottom-nav .nav-item .material-symbols-rounded { font-size: 20px; }
+    .mobile-bottom-nav .nav-item .nav-label { font-size: 8px; }
+
+    .page-header .title-group h2 { font-size: 20px; }
+    .page-header .page-icon { font-size: 22px; }
+    .card-panel, .glass-panel { border-radius: var(--radius-md); }
+    .material-symbols-rounded { font-size: 22px; }
+}
+
+/* ───── ≤480px: очень маленькие экраны ───── */
+@media (max-width: 480px) {
+    #main-layout { padding: 0 8px; padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+    .dashboard-container { padding: 8px; }
+    .mobile-bottom-nav .nav-item { min-width: 40px; }
+    .mobile-bottom-nav .nav-item .nav-label { display: none; }
+    .mobile-bottom-nav .nav-item .material-symbols-rounded { font-size: 22px; }
+    .actions-group .search-box { min-width: 100px; }
+    .fm-container .actions button span:last-child { display: none; }
+    .ksettings-container table tr { padding: 8px; }
+    .userEditModal { padding: 8px; }
+}
+
+/* ───── Touch-устройства: отключаем hover, показываем quick-actions ───── */
+@media (hover: none) and (pointer: coarse) {
+    .sidebar-item:hover:not(.active) { transform: none; background: transparent; }
+    .server-card:hover, .dashboard-card:hover, .action-btn:hover { transform: none; }
+    .server-item .quick-actions { display: flex !important; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+}
+
+/* ───── Landscape на телефонах ───── */
+@media (max-height: 500px) and (orientation: landscape) {
+    .sidebar { padding: 12px; }
+    .sidebar .sidebar-box { max-height: 40vh; overflow-y: auto; }
+    .sidebar .sidebar-box .sidebar-item { padding: 10px 12px; min-height: 40px; }
+    .mobile-bottom-nav { padding: 2px 0; }
+    .console-body { min-height: 120px; }
+    .content-header { padding: 8px 0 !important; }
+    .welcome-container img { height: 64px; }
+    .welcome-container * { margin: 8px 0; }
+}

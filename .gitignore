@@ -1,0 +1,17 @@
+config.json
+users.json
+*.exe
+*.sh
+*.bat
+servers/
+node_modules/
+logs/
+backups/
+dist/
+binaries/
+.idea/
+.serena/
+.windsurf/
+.env
+.env.local
+kubek-minecraft-dashboard-main

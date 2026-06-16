@@ -1,0 +1,17 @@
+config.json
+users.json
+*.exe
+*.sh
+*.bat
+*old*
+servers/
+node_modules/
+logs/
+backups/
+dist/
+binaries/
+.idea/
+.gitignore
+.dockerignore
+SCHEDULER_GUIDE.md
+LICENSE

@@ -1,0 +1,222 @@
+const fs = require("fs");
+const path = require("path");
+const pc = require("picocolors");
+
+const PREDEFINED = require("./predefined");
+const COMMONS = require("./commons");
+const SECURITY = require("./security");
+const SERVERS_CONTROLLER = require("./serversController");
+const APP_CONFIG = require("./appConfig");
+
+const autoStartedServers = [];
+
+// Мигрировать старый config.json
+exports.migrateOldMainConfig = () => {
+    let newConfig = PREDEFINED.CONFIGURATIONS.MAIN;
+    let oldConfig = this.readAnyConfig("./config.json");
+    if (oldConfig.configVersion !== PREDEFINED.CONFIGURATIONS.MAIN.configVersion) {
+        this.writeAnyConfig("./config.json.old", oldConfig);
+        newConfig.ftpd.enabled = oldConfig.ftpd;
+        newConfig.ftpd.username = oldConfig["ftpd-user"];
+        newConfig.ftpd.password = oldConfig["ftpd-password"];
+        newConfig.authorization = oldConfig.auth;
+        newConfig.language = oldConfig.lang;
+        newConfig.webserverPort = oldConfig["webserver-port"];
+        // Миграция настроек прокси (если есть в старом конфиге)
+        if (oldConfig.proxy) {
+            newConfig.proxy.enabled = oldConfig.proxy.enabled || false;
+            newConfig.proxy.host = oldConfig.proxy.host || "";
+            newConfig.proxy.port = oldConfig.proxy.port || "";
+            newConfig.proxy.username = oldConfig.proxy.username || "";
+            newConfig.proxy.password = oldConfig.proxy.password || "";
+        }
+        this.writeAnyConfig("./config.json", newConfig);
+        this.reloadAllConfigurations();
+        console.log(pc.yellow("config.json"), " migration success!");
+        return true;
+    } else {
+        return false;
+    }
+};
+
+// Мигрировать старые сервера
+exports.migrateOldServersConfig = () => {
+    let newConfig = PREDEFINED.CONFIGURATIONS.SERVERS;
+    let oldConfig = this.readAnyConfig("./servers/servers.json");
+    if(Object.keys(oldConfig).length > 0 && typeof oldConfig[Object.keys(oldConfig)[0]].game === "undefined"){
+        this.writeAnyConfig("./servers/servers.json.old", oldConfig);
+        Object.keys(oldConfig).forEach(key => {
+            let serverType = "java";
+            if (fs.existsSync("./servers/" + key + "/bedrock_server.exe") || fs.existsSync("./servers/" + key + "/bedrock_server")) {
+                serverType = "bedrock";
+            }
+            newConfig[key] = {
+                status: PREDEFINED.SERVER_STATUSES.STOPPED,
+                restartOnError: true,
+                maxRestartAttempts: 3,
+                game: "minecraft",
+                minecraftType: serverType,
+                stopCommand: oldConfig[key].stopCommand || "stop"
+            }
+        });
+        this.writeAnyConfig("./servers/servers.json", newConfig);
+        this.reloadAllConfigurations();
+        console.log(pc.yellow("servers.json"), " migration success!");
+        return true;
+    } else {
+        return false;
+    }
+};
+
+// Записать стандартный конфиг файл
+exports.writeDefaultConfig = () => {
+    let preparedDefaultConfig = PREDEFINED.CONFIGURATIONS.MAIN;
+    preparedDefaultConfig["language"] = COMMONS.detectUserLocale();
+    this.writeAnyConfig("config.json", preparedDefaultConfig);
+    return true;
+};
+
+// Записать стандартный файл пользователей
+exports.writeDefaultUsersConfig = () => {
+    let newHash = SECURITY.generateSecureID();
+    let preparedUsersConfig = PREDEFINED.CONFIGURATIONS.USERS;
+    preparedUsersConfig["kubek"]["secret"] = newHash;
+    this.writeAnyConfig("users.json", preparedUsersConfig);
+    return true;
+};
+
+// Читать JSON-конфиг из любого пути
+exports.readAnyConfig = (filePath) => {
+    if (path.extname(filePath) === ".json") {
+        try {
+            return JSON.parse(fs.readFileSync(filePath).toString());
+        } catch (e) {
+            console.error(`[CONFIG] Error parsing ${filePath}: ${e.message}. Using defaults.`);
+            return {};
+        }
+    } else {
+        return false;
+    }
+};
+
+// Записать JSON-конфиг по любому пути
+exports.writeAnyConfig = (filePath, data) => {
+    if (path.extname(filePath) === ".json") {
+        // Если data в виде объекта, то превращаем в JSON
+        if (typeof data === "object") {
+            data = JSON.stringify(data, null, "\t");
+        }
+        fs.writeFileSync(filePath, data);
+        return true;
+    } else {
+        return false;
+    }
+};
+
+
+// Прочитать главный конфиг (записать и отдать дефолтный при отсутствии)
+exports.readMainConfig = () => {
+    if (!fs.existsSync("config.json")) {
+        this.writeDefaultConfig();
+        return PREDEFINED.CONFIGURATIONS.MAIN;
+    } else {
+        return this.readAnyConfig("config.json");
+    }
+};
+
+// Записать главный конфиг
+exports.writeMainConfig = (data) => {
+    return this.writeAnyConfig("config.json", data);
+};
+
+
+// Прочитать конфиг пользователей (записать и отдать дефолтный при отсутствии)
+exports.readUsersConfig = () => {
+    if (!fs.existsSync("users.json")) {
+        this.writeDefaultUsersConfig();
+        return PREDEFINED.CONFIGURATIONS.USERS;
+    } else {
+        return this.readAnyConfig("users.json");
+    }
+};
+
+// Записать конфиг пользователей
+exports.writeUsersConfig = (data) => {
+    return this.writeAnyConfig("users.json", data);
+};
+
+
+// Прочитать конфиг серверов (записать и отдать дефолтный при отсутствии)
+exports.readServersConfig = () => {
+    if (!fs.existsSync("./servers/servers.json")) {
+        this.writeAnyConfig("./servers/servers.json", PREDEFINED.CONFIGURATIONS.SERVERS);
+        return PREDEFINED.CONFIGURATIONS.SERVERS;
+    } else {
+        return this.readAnyConfig("./servers/servers.json");
+    }
+};
+
+// Автоматически запустить сервера, которые были запущены при закрытии Kubek
+exports.autoStartServers = () => {
+    const serversConfig = APP_CONFIG.getServersConfig();
+    for (const [key, value] of Object.entries(serversConfig)) {
+        if(serversConfig[key].status !== PREDEFINED.SERVER_STATUSES.STOPPED && !autoStartedServers.includes(key)){
+            // Запускаем сервер, который был запущен до остановки Kubek
+            serversConfig[key].status = PREDEFINED.SERVER_STATUSES.STOPPED;
+            SERVERS_CONTROLLER.startServer(key);
+            autoStartedServers.push(key);
+        }
+    }
+};
+
+// Записать конфиг серверов
+exports.writeServersConfig = (data) => {
+    return this.writeAnyConfig("./servers/servers.json", data);
+};
+
+// Перезагрузить все конфиги в память
+exports.reloadAllConfigurations = () => {
+    let main = this.readMainConfig();
+    const users = this.readUsersConfig();
+    const servers = this.readServersConfig();
+
+    // Перекрываем настройки из переменных окружения
+    main = this.applyEnvOverrides(main);
+
+    APP_CONFIG.setMainConfig(main);
+    APP_CONFIG.setUsersConfig(users);
+    APP_CONFIG.setServersConfig(servers);
+};
+
+/**
+ * Применить переопределения из переменных окружения (KUBEK_*)
+ * @param {object} config 
+ * @returns {object}
+ */
+exports.applyEnvOverrides = (config) => {
+    const prefix = "KUBEK_";
+    const envVars = process.env;
+
+    for (const key in envVars) {
+        if (key.startsWith(prefix)) {
+            const configKey = key.slice(prefix.length).toLowerCase();
+            
+            // Маппинг простых ключей
+            if (configKey === "webserver_port") config.webserverPort = parseInt(envVars[key]);
+            if (configKey === "language") config.language = envVars[key];
+            if (configKey === "authorization") config.authorization = envVars[key] === "true";
+            
+            // Маппинг вложенных ключей (например KUBEK_FTPD_ENABLED)
+            if (configKey.startsWith("ftpd_")) {
+                const subKey = configKey.slice(5);
+                if (subKey === "enabled") config.ftpd.enabled = envVars[key] === "true";
+                if (subKey === "port") config.ftpd.port = parseInt(envVars[key]);
+                if (subKey === "username") config.ftpd.username = envVars[key];
+                if (subKey === "password") config.ftpd.password = envVars[key];
+            }
+        }
+    }
+    return config;
+};
+
+// DEVELOPED by seeeroy

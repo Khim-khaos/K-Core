@@ -1,0 +1,103 @@
+<link rel="stylesheet" href="/pages/console.css"/>
+
+<div class="console-container animate-fade-in">
+    <div class="page-header">
+        <div class="title-group">
+            <div class="page-icon">
+                <span class="material-symbols-rounded">terminal</span>
+            </div>
+            <h2>{{sections.console}}</h2>
+        </div>
+        <div class="actions-group">
+            <div class="search-box">
+                <span class="material-symbols-rounded">search</span>
+                <input type="text" id="console-search" placeholder="{{gameConsole.searchLog}}"/>
+            </div>
+            <button class="dark-btn icon-only" onclick="$('#console-text').empty()" title="{{gameConsole.clearConsole}}">
+                <span class="material-symbols-rounded">delete_sweep</span>
+            </button>
+            <button class="dark-btn" onclick="KubekServers.startServer(selectedServer)" title="{{commons.start}}">
+                <span class="material-symbols-rounded">play_arrow</span>
+                <span>{{commons.start}}</span>
+            </button>
+            <button class="dark-btn" onclick="KubekServers.stopServer(selectedServer)" title="{{commons.stop}}">
+                <span class="material-symbols-rounded">stop</span>
+                <span>{{commons.stop}}</span>
+            </button>
+            <button class="dark-btn" onclick="KubekServers.restartServer(selectedServer)" title="{{commons.restart}}">
+                <span class="material-symbols-rounded">refresh</span>
+                <span>{{commons.restart}}</span>
+            </button>
+            <button class="danger-btn kill-btn" onclick="KubekServers.killServer(selectedServer)" title="{{commons.kill}}">
+                <span class="material-symbols-rounded">skull</span>
+                <span>{{commons.kill}}</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="console-layout">
+        <div class="console-main">
+            <div class="console-tabs">
+                <div class="console-tab active">
+                    <span class="material-symbols-rounded">terminal</span>
+                    <span>Live Console</span>
+                </div>
+                <div class="console-spacer"></div>
+                <div class="console-window-controls" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            <div class="console-body" id="console-text">
+                <div class="console-placeholder">
+                    <span class="material-symbols-rounded">terminal</span>
+                    <p>{{gameConsole.waitingForLogs}}</p>
+                </div>
+            </div>
+            <div class="console-input-group">
+                <div class="input-wrapper">
+                    <span class="material-symbols-rounded input-prefix">chevron_right</span>
+                    <input type="text" id="cmd-input" placeholder="{{gameConsole.inputCommand}}" autocomplete="off" spellcheck="false"/>
+                </div>
+                <button class="primary-btn icon-only" onclick="KubekServers.sendCommandFromInput(selectedServer)" id="cmd-send-btn" title="Send">
+                    <span class="material-symbols-rounded">send</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="console-sidebar">
+            <div class="usage-card">
+                <div class="usage-header">
+                    <span class="material-symbols-rounded">memory</span>
+                    <h4>CPU</h4>
+                </div>
+                <div class="usage-content">
+                    <div class="lds-spinner" id="cpu-usage-spinner"><div></div><div></div><div></div></div>
+                    <div id="cpu-usage-bar"></div>
+                    <div class="usage-bar-mini"><div id="cpu-usage-fill" style="width:0%"></div></div>
+                </div>
+            </div>
+
+            <div class="usage-card">
+                <div class="usage-header">
+                    <span class="material-symbols-rounded">data_usage</span>
+                    <h4>RAM</h4>
+                </div>
+                <div class="usage-content">
+                    <div class="lds-spinner" id="ram-usage-spinner"><div></div><div></div><div></div></div>
+                    <div id="ram-usage-bar"></div>
+                    <div class="usage-stats" id="ram-usage-text">{{commons.loading}}</div>
+                </div>
+            </div>
+
+            <div class="usage-card">
+                <div class="usage-header">
+                    <span class="material-symbols-rounded">groups</span>
+                    <h4>Players</h4>
+                </div>
+                <div class="usage-content">
+                    <div class="usage-stats" id="players-count" style="font-size: 24px; font-weight: 800; color: var(--bg-primary-400)">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

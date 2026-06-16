@@ -1,0 +1,378 @@
+const TASK_MANAGER = require("./taskManager");
+const PREDEFINED = require("./predefined");
+const LOGGER = require("./logger");
+const MULTILANG = require("./multiLanguage");
+const APP_CONFIG = require("./appConfig");
+
+const path = require("path");
+const axios = require("axios");
+const fs = require("fs");
+const decompress = require("decompress");
+const pc = require("picocolors");
+const { URL } = require("url");
+
+const tasks = APP_CONFIG.getTasks();
+
+// Получить axios instance с настройками прокси и правильными заголовками
+function getAxiosInstance() {
+    const mainConfig = APP_CONFIG.getMainConfig();
+    const config = {
+        timeout: 120000, // 2 минуты таймаут для медленных соединений
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        headers: {
+            // Притворяемся обычным браузером
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
+    };
+
+    // Если прокси включён, добавляем агент
+    if (mainConfig && mainConfig.proxy && mainConfig.proxy.enabled) {
+        const { host, port, username, password } = mainConfig.proxy;
+        if (host && port) {
+            let proxyUrl = `http://${host}:${port}`;
+            if (username && password) {
+                proxyUrl = `http://${username}:${password}@${host}:${port}`;
+            }
+            // Используем динамический require для совместимости
+            const { HttpProxyAgent } = require("http-proxy-agent");
+            const { HttpsProxyAgent } = require("https-proxy-agent");
+            config.httpsAgent = new HttpsProxyAgent(proxyUrl);
+            config.httpAgent = new HttpProxyAgent(proxyUrl);
+        }
+    }
+
+    return axios.create(config);
+}
+
+// Создать задачу на скачивание (с поддержкой зеркал и таймаутом)
+async function addDownloadTask(downloadURL, filePath, cb = () => {}, mirrors = []) {
+    const axiosInstance = getAxiosInstance();
+
+    // Список URL для попытки (основной + зеркала)
+    const urlsToTry = [downloadURL, ...mirrors];
+    let currentUrlIndex = 0;
+    let lastError = null;
+    let downloadTimeout = null;
+    let isComplete = false;
+    let activeAttemptId = 0;
+    let progressUpdateTimer = null;
+
+    async function tryDownload() {
+        if (isComplete) return;
+        
+        if (currentUrlIndex >= urlsToTry.length) {
+            // Все URL перепробованы
+            isComplete = true;
+            cb(lastError || new Error("Все зеркала недоступны"));
+            return null;
+        }
+
+        let currentUrl = urlsToTry[currentUrlIndex];
+        const attemptId = ++activeAttemptId;
+        let dlTaskID = null;
+        let downloadComplete = false;
+        let receivedBytes = 0;
+        let responseStream = null;
+        let writeStream = null;
+        let abortController = new AbortController();
+        let extraHeaders = null;
+
+        const cleanupAttempt = (removeTask = false, destroyStreams = false) => {
+            if (downloadTimeout) {
+                clearTimeout(downloadTimeout);
+                downloadTimeout = null;
+            }
+            if (progressUpdateTimer) {
+                clearInterval(progressUpdateTimer);
+                progressUpdateTimer = null;
+            }
+            if (destroyStreams) {
+                if (responseStream && !responseStream.destroyed) {
+                    responseStream.destroy();
+                }
+                if (writeStream && !writeStream.destroyed) {
+                    writeStream.destroy();
+                }
+            }
+            if (removeTask && dlTaskID && TASK_MANAGER.isTaskExists(dlTaskID)) {
+                TASK_MANAGER.removeTask(dlTaskID);
+            }
+        };
+
+        const failAttempt = (err) => {
+            if (downloadComplete || attemptId !== activeAttemptId) return;
+            downloadComplete = true;
+            lastError = err || lastError;
+            cleanupAttempt(true, true);
+            try {
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            } catch (e) {
+                LOGGER.warning(`[Download] Could not delete partial file: ${e.message}`);
+            }
+            currentUrlIndex++;
+            tryDownload();
+        };
+
+        LOGGER.log(`Попытка загрузки с: ${pc.cyan(currentUrl)} (попытка ${currentUrlIndex + 1}/${urlsToTry.length})`);
+
+        let isForgeHost = false;
+        let isNyist = false;
+        let isBmclapi = false;
+        let isForgeCDN = false;
+        let isUniversityMirror = false;
+
+        try {
+            const host = new URL(currentUrl).hostname;
+            if (host.includes("minecraftforge.net") || host.includes("neoforged.net")) {
+                isForgeHost = true;
+            }
+            if (host === "mirror.nyist.edu.cn") {
+                isNyist = true;
+            }
+            if (host === "bmclapi2.bangbang93.com") {
+                isBmclapi = true;
+            }
+            if (host === "neoforged.forgecdn.net") {
+                isForgeCDN = true;
+            }
+            if (host === "mirror.sjtu.edu.cn" || host === "mirrors.qlu.edu.cn") {
+                isUniversityMirror = true;
+            }
+        } catch (e) {
+            // ignore URL parse errors
+        }
+        
+        // Переменная должна быть доступна для resetStallTimeout
+        const stallTimeoutMs = (isForgeHost || isNyist || isBmclapi || isForgeCDN || isUniversityMirror) ? 20000 : 60000;
+
+        const resetStallTimeout = () => {
+            if (downloadTimeout) {
+                clearTimeout(downloadTimeout);
+            }
+            if (downloadComplete || isComplete || attemptId !== activeAttemptId) return;
+
+            downloadTimeout = setTimeout(() => {
+                if (downloadComplete || attemptId !== activeAttemptId) return;
+                LOGGER.warning(`[Download] Timeout (no data for ${stallTimeoutMs/1000}s) for ${currentUrl}, trying next...`);
+                try {
+                    abortController.abort();
+                    if (responseStream && !responseStream.destroyed) responseStream.destroy();
+                } catch (e) {
+                    // ignore
+                }
+                failAttempt(new Error("Download stall timeout"));
+            }, stallTimeoutMs);
+        };
+
+        try {
+            LOGGER.log(`[Download] Sending request to: ${currentUrl}`);
+            
+            const requestStream = async (url, headersOverride = null) => {
+                const isUrlNyist = url.includes("mirror.nyist.edu.cn");
+                const isUrlBmclapi = url.includes("bmclapi2.bangbang93.com");
+                const isUrlUni = url.includes("mirror.sjtu.edu.cn") || url.includes("mirrors.qlu.edu.cn");
+                
+                return axiosInstance({
+                    url,
+                    method: "GET",
+                    responseType: "stream",
+                    timeout: (isUrlNyist || isUrlBmclapi || isUrlUni) ? 300000 : 180000, 
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity,
+                    signal: abortController.signal,
+                    family: isForgeHost ? 4 : undefined,
+                    headers: headersOverride ? Object.assign({}, headersOverride) : undefined
+                });
+            };
+            
+            const resolveNyistAuth = async (url) => {
+                try {
+                    const parsed = new URL(url);
+                    if (parsed.hostname !== "mirror.nyist.edu.cn") return null;
+                    const originUrl = parsed.pathname + parsed.search;
+                    const authUrl = "https://mirror.nyist.edu.cn/getcookie?originurl=" + encodeURIComponent(originUrl);
+                    const authResp = await axiosInstance({
+                        url: authUrl,
+                        method: "GET",
+                        responseType: "json",
+                        timeout: 15000,
+                        maxContentLength: 1024 * 1024
+                    });
+                    if (!authResp || !authResp.data) return null;
+                    const cookie = authResp.data.cookie;
+                    const targetUrl = authResp.data.url;
+                    if (!cookie || !targetUrl) return null;
+                    const finalUrl = parsed.protocol + "//" + parsed.host + decodeURIComponent(targetUrl) + "?auth=" + cookie;
+                    return { url: finalUrl, cookie };
+                } catch (e) {
+                    return null;
+                }
+            };
+            
+            let response = await requestStream(currentUrl);
+            let { data, headers } = response;
+            
+            LOGGER.log(`[Download] Response headers: content-length=${headers['content-length'] || 'N/A'}, content-type=${headers['content-type'] || 'N/A'}`);
+            const contentType = String(headers['content-type'] || '').toLowerCase();
+            if (contentType.includes('text/html') || contentType.includes('text/plain')) {
+                const nyistAuth = await resolveNyistAuth(currentUrl);
+                if (nyistAuth) {
+                    try {
+                        if (data && !data.destroyed) data.destroy();
+                    } catch (e) {
+                        // ignore
+                    }
+                    currentUrl = nyistAuth.url;
+                    extraHeaders = { 'Cookie': `auth=${nyistAuth.cookie}` };
+                    response = await requestStream(currentUrl, extraHeaders);
+                    data = response.data;
+                    headers = response.headers;
+                    LOGGER.log(`[Download] Response headers: content-length=${headers['content-length'] || 'N/A'}, content-type=${headers['content-type'] || 'N/A'}`);
+                }
+            }
+            
+            const contentTypeFinal = String(headers['content-type'] || '').toLowerCase();
+            if (contentTypeFinal.includes('text/html') || contentTypeFinal.includes('text/plain')) {
+                throw new Error(`Unexpected content-type: ${contentTypeFinal}`);
+            }
+            
+            const totalSize = parseInt(headers['content-length']) || 0;
+            
+            if (totalSize === 0) {
+                LOGGER.warning(`[Download] Server returned content-length=0, this may cause issues`);
+            } else {
+                LOGGER.log(`[Download] File size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+            }
+            
+            // Создаём новую задачу и запоминаем её ID
+            dlTaskID = TASK_MANAGER.addNewTask({
+                type: PREDEFINED.TASKS_TYPES.DOWNLOADING,
+                progress: 0,
+                size: {
+                    total: totalSize,
+                    current: 0
+                },
+                url: currentUrl,
+                path: filePath,
+                filename: path.basename(filePath)
+            });
+
+            LOGGER.log(MULTILANG.translateText(mainConfig.language, "{{console.downloadTaskCreated}}", pc.cyan(dlTaskID), pc.cyan(path.basename(filePath))));
+
+            responseStream = data;
+
+            responseStream.on('aborted', () => {
+                LOGGER.warning(`[Download] Response aborted by server: ${currentUrl}`);
+            });
+
+            responseStream.on('close', () => {
+                if (!downloadComplete && !isComplete) {
+                    LOGGER.warning(`[Download] Response stream closed early: ${currentUrl}`);
+                }
+            });
+
+            // Инициализируем таймаут на отсутствие данных
+            resetStallTimeout();
+
+            // Периодический лог прогресса (раз в 5 секунд)
+            progressUpdateTimer = setInterval(() => {
+                if (downloadComplete || attemptId !== activeAttemptId) return;
+                if (totalSize > 0) {
+                    const pct = Math.round((receivedBytes / totalSize) * 100);
+                    LOGGER.log(`[Download] Progress: ${pct}% (${receivedBytes}/${totalSize} bytes)`);
+                } else {
+                    LOGGER.log(`[Download] Progress: ${receivedBytes} bytes (total unknown)`);
+                }
+            }, 5000);
+
+            // Каждый чанк обновляем прогресс
+            responseStream.on('data', (chunk) => {
+                if (downloadComplete || attemptId !== activeAttemptId) return;
+                
+                receivedBytes += chunk.length;
+                
+                // Сбрасываем таймаут при получении данных
+                resetStallTimeout();
+                
+                // Проверяем, что задача ещё существует
+                if (tasks[dlTaskID]) {
+                    tasks[dlTaskID].size.current = receivedBytes;
+                    
+                    // Если размер неизвестен, показываем прогресс по полученным байтам
+                    if (totalSize === 0) {
+                        tasks[dlTaskID].progress = Math.min(99, Math.floor(receivedBytes / 1024 / 1024 * 10)); // Примерный прогресс
+                    } else {
+                        tasks[dlTaskID].progress = Math.round((receivedBytes / totalSize) * 100);
+                    }
+                }
+            });
+
+            responseStream.on('end', () => {
+                if (downloadComplete || attemptId !== activeAttemptId) return;
+                downloadComplete = true;
+                
+                cleanupAttempt(false, false);
+                
+                // Проверяем, что задача ещё существует перед удалением
+                if (tasks[dlTaskID]) {
+                    TASK_MANAGER.removeTask(dlTaskID);
+                }
+                
+                LOGGER.log(`[Download] Download completed: ${filePath}`);
+                isComplete = true;
+                cb(true);
+            });
+
+            responseStream.on('error', (err) => {
+                if (downloadComplete || attemptId !== activeAttemptId) return;
+                LOGGER.error(`[Download] Stream error: ${err.message}`);
+                failAttempt(err);
+            });
+
+            writeStream = fs.createWriteStream(filePath);
+            
+            writeStream.on('error', (err) => {
+                if (downloadComplete || attemptId !== activeAttemptId) return;
+                LOGGER.error(`[Download] Write error: ${err.message}`);
+                failAttempt(err);
+            });
+            
+            writeStream.on('finish', () => {
+                LOGGER.log(`[Download] File write finished: ${filePath}`);
+            });
+
+            responseStream.pipe(writeStream);
+            return dlTaskID;
+        } catch (error) {
+            const errMsg = (error && (error.message || error.code || error.toString())) || "Unknown error";
+            LOGGER.error(`Ошибка загрузки с ${pc.cyan(currentUrl)}: ${errMsg}`);
+            failAttempt(error);
+            return null;
+        }
+    }
+
+    return tryDownload();
+}
+
+// Распаковать архив по нужному пути
+exports.unpackArchive = (archivePath, unpackPath, cb, deleteAfterUnpack = false) => {
+    fs.mkdirSync(unpackPath, {recursive: true});
+    decompress(archivePath, unpackPath)
+        .then(function () {
+            if (deleteAfterUnpack) {
+                fs.unlinkSync(archivePath);
+            }
+            cb(true);
+        })
+        .catch(function (error) {
+            console.error(error);
+            cb(false);
+        });
+}
+
+module.exports.addDownloadTask = addDownloadTask;

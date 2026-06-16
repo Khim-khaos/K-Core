@@ -1,0 +1,387 @@
+<button class="dark-btn icon-only close-btn" onclick="KubekUI.toggleSidebar()">
+        <span class="material-symbols-rounded">close</span>
+    </button>
+
+    <div class="sidebar-box" id="servers-list-sidebar">
+        <div class="sidebar-section-title">{{commons.servers}}</div>
+        <div class="sidebar-item create-server" onclick="window.location='/?act=newServer'">
+            <div class="icon-circle-bg bg-primary-500">
+                <span class="material-symbols-rounded">add</span>
+            </div>
+            <span>{{commons.create}} {{commons.server.lowerCase}}</span>
+        </div>
+    </div>
+
+    <div class="sidebar-box" id="main-menu-sidebar">
+        <div class="sidebar-section-title">{{commons.navigation}}</div>
+        <div class="sidebar-item" data-page="dashboard">
+            <span class="material-symbols-rounded">dashboard</span>
+            <span>{{sections.dashboard}}</span>
+        </div>
+        <div class="sidebar-item" data-page="console">
+            <span class="material-symbols-rounded">terminal</span>
+            <span>{{sections.console}}</span>
+        </div>
+        <div class="sidebar-item" data-page="fileManager">
+            <span class="material-symbols-rounded">folder</span>
+            <span>{{sections.fileManager}}</span>
+        </div>
+        <div class="sidebar-item" data-page="plugins">
+            <span class="material-symbols-rounded">extension</span>
+            <span>{{sections.plugins}}</span>
+        </div>
+        <div class="sidebar-item" data-page="serverSettings">
+            <span class="material-symbols-rounded">tune</span>
+            <span>{{sections.serverSettings}}</span>
+        </div>
+        <div class="sidebar-item" data-page="server.properties">
+            <span class="material-symbols-rounded">settings_ethernet</span>
+            <span>Server.properties</span>
+        </div>
+    </div>
+
+    <div class="sidebar-box sidebar-footer-box">
+        <div class="sidebar-section-title">{{commons.system}}</div>
+        <div class="sidebar-item" data-page="kubekSettings">
+            <span class="material-symbols-rounded">settings</span>
+            <span>{{sections.kubekSettings}}</span>
+        </div>
+        <div class="sidebar-item" data-page="systemMonitor">
+            <span class="material-symbols-rounded">area_chart</span>
+            <span>{{sections.systemMonitor}}</span>
+        </div>
+        <div class="sidebar-item theme-item" id="theme-toggle">
+            <span class="material-symbols-rounded" id="theme-icon">dark_mode</span>
+            <span id="theme-text">{{commons.theme.dark}}</span>
+        </div>
+        <div class="sidebar-item logout-item" id="logout-sidebar-btn">
+            <span class="material-symbols-rounded">logout</span>
+            <span>{{commons.logout}}</span>
+        </div>
+    </div>
+
+<script defer>
+    $("#main-menu-sidebar .sidebar-item, .sidebar-footer-box .sidebar-item:not(.theme-item):not(.logout-item)").on("click", function () {
+        const page = $(this).data("page");
+        if (page) {
+            KubekUI.changeItemByPage(page);
+            KubekPageManager.gotoPage(page);
+            if (window.matchMedia("(max-width: 1360px)").matches) {
+                KubekUI.toggleSidebar();
+            }
+        }
+    });
+
+    $("#logout-sidebar-btn").on("click", function () {
+        KubekRequests.get("/auth/logout", () => {
+            window.location = "/login.html";
+        });
+    });
+
+    $("#theme-toggle").on("click", function () {
+        const current = document.documentElement.getAttribute("data-theme") || "dark";
+        const next = current === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+        updateThemeUI(next);
+    });
+
+    function updateThemeUI(theme) {
+        $("#theme-icon").text(theme === "light" ? "light_mode" : "dark_mode");
+        $("#theme-text").text(theme === "light" ? "{{commons.theme.light}}" : "{{commons.theme.dark}}");
+    }
+
+    $(function () {
+        const saved = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", saved);
+        updateThemeUI(saved);
+
+        document.querySelector(".blurScreen")?.addEventListener("click", function () {
+            if (window.matchMedia("(max-width: 1360px)").matches) {
+                const sb = document.getElementById("sidebar-place");
+                if (sb && !sb.classList.contains("minimized")) {
+                    KubekUI.toggleSidebar();
+                }
+            }
+        });
+
+        (function() {
+            let sx = 0;
+            let ex = 0;
+            const sb = document.getElementById("sidebar-place");
+
+            if (sb) {
+                sb.addEventListener("touchstart", function (e) {
+                    sx = e.touches[0].clientX;
+                }, { passive: true });
+
+                sb.addEventListener("touchmove", function (e) {
+                    ex = e.touches[0].clientX;
+                }, { passive: true });
+
+                sb.addEventListener("touchend", function () {
+                    if (sx - ex > 80) {
+                        KubekUI.toggleSidebar();
+                    }
+                }, { passive: true });
+            }
+        })();
+    });
+</script>
+
+<style>
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .sidebar .close-btn {
+        display: none;
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .sidebar-box {
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 12px;
+        min-height: 60px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar-section-title {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-dim);
+        padding: 8px 16px 10px;
+    }
+
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        padding: 11px 14px;
+        border-radius: var(--radius-md);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        gap: 0;
+    }
+
+    .sidebar-item + .sidebar-item {
+        margin-top: 2px;
+    }
+
+    .sidebar-item.active {
+        background: linear-gradient(135deg, var(--bg-primary-600), var(--bg-primary-700));
+        box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+    }
+
+    .sidebar-item.active::before {
+        content: '';
+        position: absolute;
+        left: -12px;
+        top: 25%;
+        bottom: 25%;
+        width: 3px;
+        background: white;
+        border-radius: 0 var(--radius-full) var(--radius-full) 0;
+    }
+
+    .sidebar-item.active * {
+        color: white !important;
+        cursor: default;
+    }
+
+    .sidebar-item .material-symbols-rounded {
+        margin-right: 14px;
+        font-size: 22px;
+        color: var(--text-muted);
+        transition: color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .sidebar-item span:not(.material-symbols-rounded) {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--text-muted);
+        transition: color var(--transition-fast);
+    }
+
+    .sidebar-item:hover:not(.active) {
+        background: var(--bg-dark-accent-light);
+        transform: translateX(3px);
+    }
+
+    .sidebar-item:hover:not(.active) * {
+        color: var(--text-main);
+    }
+
+    .sidebar-item:hover:not(.active) .material-symbols-rounded {
+        transform: scale(1.1);
+    }
+
+    .sidebar-item .icon-circle-bg {
+        border-radius: var(--radius-sm);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 14px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+    }
+
+    .sidebar-item .icon-circle-bg .material-symbols-rounded {
+        color: white !important;
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .sidebar-item.logout-item * {
+        color: var(--error);
+    }
+
+    .sidebar-item.logout-item:hover {
+        background: rgba(244, 63, 94, 0.1);
+    }
+
+    .sidebar-item.theme-item:hover .material-symbols-rounded {
+        transform: rotate(30deg);
+    }
+
+    #servers-list-sidebar {
+        max-height: 35vh;
+        overflow-y: auto;
+    }
+
+    #servers-list-sidebar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #servers-list-sidebar::-webkit-scrollbar-thumb {
+        background: var(--bg-dark-accent-lighter);
+        border-radius: 10px;
+    }
+
+    .server-item {
+        display: flex;
+        align-items: center;
+        padding: 9px 12px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 0;
+    }
+
+    .server-item:hover {
+        background: var(--bg-dark-accent-light);
+    }
+
+    .server-item.active {
+        background: var(--bg-dark-accent-light);
+        box-shadow: inset 3px 0 0 var(--bg-primary-500);
+    }
+
+    .server-item .icon-circle-bg {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: var(--bg-dark-accent-lighter);
+    }
+
+    .server-item .icon-circle-bg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .server-item .server-name {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .server-item .quick-actions {
+        display: none;
+        margin-left: auto;
+        gap: 4px;
+    }
+
+    .server-item:hover .quick-actions {
+        display: flex;
+    }
+
+    .server-item .quick-actions span {
+        font-size: 14px !important;
+        padding: 4px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--text-muted) !important;
+        transition: all var(--transition-fast);
+    }
+
+    .server-item .quick-actions span:hover {
+        background: var(--bg-primary-500);
+        color: white !important;
+    }
+
+    .sidebar-footer-box {
+        margin-top: auto;
+    }
+
+    @media (max-width: 1360px) {
+        .sidebar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background: var(--bg-dark);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar.minimized {
+            display: none;
+        }
+
+        .sidebar .close-btn {
+            display: flex !important;
+        }
+
+        .sidebar .sidebar-box {
+            max-width: 420px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .sidebar .sidebar-box .sidebar-item {
+            padding: 14px 18px;
+        }
+
+        .sidebar .sidebar-box .sidebar-item span:not(.material-symbols-rounded) {
+            font-size: 15px;
+        }
+    }
+</style>

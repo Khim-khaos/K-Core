@@ -1,0 +1,64 @@
+.uiPool {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    position: fixed;
+    z-index: 3000000;
+
+    max-height: 100vh;
+    max-width: 45vw;
+    height: max-content;
+    width: max-content;
+
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.uiPool > * {
+    pointer-events: auto;
+}
+
+.uiPool.top {
+    top: 16px;
+}
+
+.uiPool.bottom {
+    bottom: 16px;
+}
+
+.uiPool.left {
+    left: 16px;
+}
+
+.uiPool.right {
+    right: 16px;
+}
+
+.uiPool .alert {
+    margin: 8px 0;
+}
+
+@media (max-width: 1100px) {
+    .uiPool.bottom {
+        bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    }
+    .uiPool {
+        max-width: 90vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .uiPool.bottom {
+        bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    }
+    .uiPool {
+        max-width: 95vw;
+    }
+    .uiPool.left {
+        left: 8px;
+    }
+    .uiPool.right {
+        right: 8px;
+    }
+}

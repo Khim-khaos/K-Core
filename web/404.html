@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#020617"/>
+    <title>404 — Kubek</title>
+    <link rel="stylesheet" href="/css/globals.css"/>
+    <link rel="stylesheet" href="/css/theme.css"/>
+    <link rel="stylesheet" href="/css/elements/elements.css"/>
+    <link rel="stylesheet" href="/assets/fonts/Gilroy/stylesheet.css"/>
+</head>
+<body>
+    <div class="error-aurora" aria-hidden="true">
+        <span class="orb orb-1"></span>
+        <span class="orb orb-2"></span>
+    </div>
+
+    <div class="error-page">
+        <div class="error-grid" aria-hidden="true"></div>
+        <div class="error-content animate-fade-in-scale">
+            <div class="error-icon-wrap animate-float">
+                <span class="material-symbols-rounded error-icon">explore_off</span>
+            </div>
+            <div class="error-code">404</div>
+            <h1 class="error-title">Page not found</h1>
+            <p class="error-desc">Страница, которую вы ищете, не существует или была перемещена</p>
+            <div class="error-actions">
+                <button class="primary-btn" onclick="window.location='/'">
+                    <span class="material-symbols-rounded">home</span>
+                    <span>Вернуться на главную</span>
+                </button>
+                <button class="ghost-btn" onclick="window.history.back()">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                    <span>Назад</span>
+                </button>
+            </div>
+            <div class="error-suggestion">
+                <span class="material-symbols-rounded">lightbulb</span>
+                <span>Проверьте URL или используйте боковое меню для навигации</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        body {
+            padding: 0; margin: 0;
+            background: var(--bg-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .error-aurora {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .error-aurora .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: orb-float 14s ease-in-out infinite;
+        }
+        .error-aurora .orb-1 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, var(--bg-primary-500), transparent 70%);
+            top: -100px; right: -100px;
+        }
+        .error-aurora .orb-2 {
+            width: 460px; height: 460px;
+            background: radial-gradient(circle, #c084fc, transparent 70%);
+            bottom: -160px; left: -120px;
+            animation-delay: -7s;
+        }
+        @keyframes orb-float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -40px) scale(1.05); }
+        }
+
+        .error-page {
+            position: relative;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 40px 20px;
+        }
+
+        .error-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse at center, black 0%, transparent 60%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .error-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            max-width: 480px;
+        }
+
+        .error-icon-wrap {
+            width: 96px;
+            height: 96px;
+            border-radius: var(--radius-2xl);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(192, 132, 252, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
+        }
+
+        .error-icon {
+            font-size: 48px !important;
+            background: linear-gradient(135deg, var(--bg-primary-400), #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .error-code {
+            font-size: 140px;
+            font-weight: 950;
+            line-height: 0.9;
+            background: linear-gradient(135deg, var(--bg-primary-400), var(--bg-primary-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.06em;
+            margin: 0;
+        }
+
+        .error-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-main);
+            letter-spacing: -0.03em;
+        }
+
+        .error-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin: 0 0 12px;
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .error-suggestion {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 10px 16px;
+            background: var(--bg-dark-accent);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .error-suggestion .material-symbols-rounded {
+            font-size: 18px;
+            color: var(--warning);
+        }
+
+        @media (max-width: 600px) {
+            .error-code { font-size: 96px; }
+            .error-title { font-size: 22px; }
+            .error-icon-wrap { width: 80px; height: 80px; }
+            .error-icon { font-size: 40px !important; }
+        }
+    </style>
+</body>
+</html>
