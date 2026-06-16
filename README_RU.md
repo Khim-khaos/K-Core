@@ -1,9 +1,11 @@
 [English Readme](README.md)
 
 # Что это за проект?
-Kubek — это панель управления веб-сервером Minecraft, поддерживающая Linux и Windows. Проект предлагает интуитивно понятный интерфейс для управления серверами, плагинами и модами и многим другим. Включает встроенный FTP-сервер и файловый менеджер с подсветкой синтаксиса. Пользователи могут контролировать доступ к серверам через систему пользователей и ролей.
+K-Core — это панель управления веб-сервером Minecraft, поддерживающая Linux и Windows. Проект предлагает интуитивно понятный интерфейс для управления серверами, плагинами и модами и многим другим. Включает встроенный FTP-сервер и файловый менеджер с подсветкой синтаксиса. Пользователи могут контролировать доступ к серверам через систему пользователей и ролей.
 
-[![Статус CI/CD](https://github.com/Khim-khaos/kubek-minecraft-dashboard/actions/workflows/build.yml/badge.svg)](https://github.com/Khim-khaos/kubek-minecraft-dashboard/actions/workflows/build.yml)
+K-Core — это независимый проект, изначально основанный на [kubek-minecraft-dashboard](https://github.com/seeroy/kubek-minecraft-dashboard), но теперь развиваемый как отдельный проект со своей дорожной картой и функциями.
+
+[![Статус CI/CD](https://github.com/Khim-khaos/K-Core/actions/workflows/build.yml/badge.svg)](https://github.com/Khim-khaos/K-Core/actions/workflows/build.yml)
 
 **Функции:**
 - **Поддержка Linux/Windows**
@@ -32,15 +34,15 @@ Kubek — это панель управления веб-сервером Minec
 
 ## Скачать готовый релиз (рекомендуется)
 
-Скачайте и запустите подходящий под вашу ОС файл [из последнего релиза](https://github.com/Khim-khaos/kubek-minecraft-dashboard/releases/latest)
+Скачайте и запустите подходящий под вашу ОС файл [из последнего релиза](https://github.com/Khim-khaos/K-Core/releases/latest)
 
 ## Собрать из исходников
 
 Клонируйте репозиторий и установите библиотеки
 **Node.js >= 20 required!**
 ```
-git clone https://github.com/Khim-khaos/kubek-minecraft-dashboard.git
-cd kubek-minecraft-dashboard
+git clone https://github.com/Khim-khaos/K-Core.git
+cd K-Core
 npm install
 ```
 
@@ -68,11 +70,11 @@ npm run lint
 
 ## Использовать контейнер Docker
 
-Если вы знаете все порты, которые вам нужно использовать, вы можете запустить Kubek в Docker с помощью команды ниже. В данном примере для самой панели используется порт 3000, а для сервера — 25565
+Если вы знаете все порты, которые вам нужно использовать, вы можете запустить K-Core в Docker с помощью команды ниже. В данном примере для самой панели используется порт 3000, а для сервера — 25565
 Замените YOUR_DIRECTORY на путь к вашей папке
 
 ```
-docker run -d --name kubek \
+docker run -d --name k-core \
             --restart unless-stopped \
 			-p 3000:3000 \
 			-p 25565:25565 \
@@ -80,16 +82,16 @@ docker run -d --name kubek \
 			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
 			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
 			-v /YOUR_DIRECTORY/config.json:/usr/kubek/config.json \
-			Khim-khaos/kubek-minecraft-dashboard
+			Khim-khaos/K-Core
 ```
 
 Если вы хотите открыть все порты, то используйте команду ниже (с ней панель всегда будет работать на порту 3000, переназначение портов недоступно)
 ```
-docker run -d --name kubek --network host \
+docker run -d --name k-core --network host \
             --restart unless-stopped \
 			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
 			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
 			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
 			-v /YOUR_DIRECTORY/config.json:/usr/kubek/config.json \
-			Khim-khaos/kubek-minecraft-dashboard
+			Khim-khaos/K-Core
 ```

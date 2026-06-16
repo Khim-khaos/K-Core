@@ -1,5 +1,5 @@
 {
-  "name": "kubek-minecraft-dashboard",
+  "name": "k-core",
   "version": "3.0.8",
   "description": "Веб-панель управления серверами Minecraft",
   "main": "app.js",
@@ -18,15 +18,15 @@
     "start": "node app.js",
     "dev": "node --watch app.js",
     "build": "pkg --config pkgconfig.json app.js",
-    "dockerBuild": "docker build -t Khim-khaos/kubek-minecraft-dashboard .",
-    "dockerPush": "docker push Khim-khaos/kubek-minecraft-dashboard",
+    "dockerBuild": "docker build -t Khim-khaos/K-Core .",
+    "dockerPush": "docker push Khim-khaos/K-Core",
     "lint": "eslint .",
     "swagger": "node swagger.js",
     "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Khim-khaos/kubek-minecraft-dashboard"
+    "url": "git+https://github.com/Khim-khaos/K-Core"
   },
   "dependencies": {
     "adm-zip": "^0.5.17",

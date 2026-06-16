@@ -1,9 +1,11 @@
 [Readme на русском](README_RU.md)
 
 # What is this project?
-Kubek is a Minecraft web server control panel that supports Linux and Windows. The project offers an intuitive interface for managing servers, plugins and mods and more. Includes an integrated FTP server and file manager with syntax highlighting. Users can control access to servers through a user and role system
+K-Core is a Minecraft web server control panel that supports Linux and Windows. The project offers an intuitive interface for managing servers, plugins and mods and more. Includes an integrated FTP server and file manager with syntax highlighting. Users can control access to servers through a user and role system
 
-[![CI/CD status](https://github.com/Khim-khaos/kubek-minecraft-dashboard/actions/workflows/build.yml/badge.svg)](https://github.com/Khim-khaos/kubek-minecraft-dashboard/actions/workflows/build.yml)
+K-Core is an independent project, originally based on [kubek-minecraft-dashboard](https://github.com/seeroy/kubek-minecraft-dashboard), but now developed as a separate project with its own roadmap and features.
+
+[![CI/CD status](https://github.com/Khim-khaos/K-Core/actions/workflows/build.yml/badge.svg)](https://github.com/Khim-khaos/K-Core/actions/workflows/build.yml)
 
 ## What's new in v3
 
@@ -58,15 +60,15 @@ Kubek v3 ships with a **complete UI overhaul** focused on polish, performance, a
 
 ## Download prepared release (recommended)
 
-Download and run the file suitable for your OS [from latest release](https://github.com/Khim-khaos/kubek-minecraft-dashboard/releases/latest)
+Download and run the file suitable for your OS [from latest release](https://github.com/Khim-khaos/K-Core/releases/latest)
 
 ## Build from sources
 
 Clone repository and install libs
 **Node.js >= 20 required!**
 ```
-git clone https://github.com/Khim-khaos/kubek-minecraft-dashboard.git
-cd kubek-minecraft-dashboard
+git clone https://github.com/Khim-khaos/K-Core.git
+cd K-Core
 npm install
 ```
 
@@ -99,11 +101,11 @@ npm run swagger
 
 ## Use Docker container
 
-If you know all the ports you need to use, you can run Kubek in Docker using a command like this. In this example, port 3000 is used for the panel itself, and 25565 for the server
+If you know all the ports you need to use, you can run K-Core in Docker using a command like this. In this example, port 3000 is used for the panel itself, and 25565 for the server
 Replace YOUR_DIRECTORY with your folder path
 
 ```
-docker run -d --name kubek \
+docker run -d --name k-core \
             --restart unless-stopped \
 			-p 3000:3000 \
 			-p 25565:25565 \
@@ -111,18 +113,18 @@ docker run -d --name kubek \
 			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
 			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
 			-v /YOUR_DIRECTORY/config.json:/usr/kubek/config.json \
-			Khim-khaos/kubek-minecraft-dashboard
+			Khim-khaos/K-Core
 ```
 
-If you want to open all ports, then use the command below (with it, Kubek will always work on port 3000, port remapping is not available)
+If you want to open all ports, then use the command below (with it, K-Core will always work on port 3000, port remapping is not available)
 ```
-docker run -d --name kubek --network host \
+docker run -d --name k-core --network host \
             --restart unless-stopped \
 			-v /YOUR_DIRECTORY/servers:/usr/kubek/servers \
 			-v /YOUR_DIRECTORY/logs:/usr/kubek/logs \
 			-v /YOUR_DIRECTORY/binaries:/usr/kubek/binaries \
 			-v /YOUR_DIRECTORY/config.json:/usr/kubek/config.json \
-			Khim-khaos/kubek-minecraft-dashboard
+			Khim-khaos/K-Core
 ```
 
 # Project structure
